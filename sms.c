@@ -21,6 +21,7 @@ uint32_t sramctl, nsram, sram0, sram1;
 int doflush = 0;
 uint8_t header[0x7fff];
 uint8_t *prg = NULL;
+uint8_t *rom = NULL;
 uint32_t pic[256*224] = {0};
 
 void
@@ -29,6 +30,8 @@ loadrom(const uint8_t *data)
 	memcpy(header, data, sizeof(header));
 	prg = malloc(49152);
 	memcpy(prg, data+sizeof(header), 49152);
+	rom = malloc(49152);
+	memcpy(rom, data, 49152);
 	spc = 0;
 }
 

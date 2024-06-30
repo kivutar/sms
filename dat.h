@@ -10,6 +10,7 @@ extern uint16_t spc, scurpc;
 
 extern uint16_t ram[32768];
 extern uint8_t *prg;
+extern uint8_t *rom;
 extern int nprg;
 extern uint8_t *sram;
 extern uint32_t sramctl, sram0, sram1;
