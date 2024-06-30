@@ -1,0 +1,170 @@
+#include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "libretro.h"
+#include "dat.h"
+#include "fns.h"
+
+static retro_input_state_t input_state_cb;
+static retro_input_poll_t input_poll_cb;
+static retro_video_refresh_t video_cb;
+static retro_environment_t environ_cb;
+retro_audio_sample_batch_t audio_cb;
+
+uint32_t r[16], pc, curpc;
+extern uint16_t spc, scurpc, sp;
+uint32_t asp, irq, stop;
+int nprg;
+uint8_t *sram;
+uint32_t sramctl, nsram, sram0, sram1;
+int doflush = 0;
+uint8_t header[0x7fff];
+uint8_t *prg = NULL;
+uint32_t pic[256*224] = {0};
+
+void
+loadrom(const uint8_t *data)
+{
+	memcpy(header, data, sizeof(header));
+	prg = malloc(49152);
+	memcpy(prg, data+sizeof(header), 49152);
+	spc = 0;
+}
+
+void
+retro_init(void)
+{
+}
+
+void
+retro_get_system_info(struct retro_system_info *info)
+{
+	memset(info, 0, sizeof(*info));
+	info->library_name = "sms";
+	info->library_version = "1.0";
+	info->need_fullpath = false;
+	info->valid_extensions = "sms";
+}
+
+void
+retro_get_system_av_info(struct retro_system_av_info *info)
+{
+	info->timing.fps = 60.0;
+	info->timing.sample_rate = 48000;
+
+	info->geometry.base_width = 256;
+	info->geometry.base_height = 224;
+	info->geometry.max_width = 256;
+	info->geometry.max_height = 224;
+	info->geometry.aspect_ratio = 4.0 / 3.0;
+}
+
+unsigned
+retro_api_version(void)
+{
+	return RETRO_API_VERSION;
+}
+
+bool
+retro_load_game(const struct retro_game_info *game)
+{
+	printf("Loading game\n");
+	enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_XRGB8888;
+	if (!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
+		return false;
+
+	loadrom(game->data);
+	return true;
+}
+
+void
+process_inputs()
+{
+}
+
+void
+retro_run(void)
+{
+	input_poll_cb();
+	process_inputs();
+
+	while(!doflush){
+		z80step();
+	}
+	video_cb(pic, 256, 224, 256*4);
+	//audioout();
+	doflush = 0;
+}
+
+void
+flush(void)
+{
+	doflush = 1;
+}
+
+void
+retro_set_input_poll(retro_input_poll_t cb)
+{
+	input_poll_cb = cb;
+}
+
+void
+retro_set_input_state(retro_input_state_t cb)
+{
+	input_state_cb = cb;
+}
+
+void
+retro_set_video_refresh(retro_video_refresh_t cb)
+{
+	video_cb = cb;
+}
+
+void
+retro_set_environment(retro_environment_t cb)
+{
+	environ_cb = cb;
+}
+
+void
+retro_set_audio_sample_batch(retro_audio_sample_batch_t cb)
+{
+    audio_cb = cb;
+}
+
+void
+retro_reset(void)
+{
+	doflush = 0;
+}
+
+size_t
+retro_serialize_size(void)
+{
+	return 0;
+}
+
+bool
+retro_serialize(void *data, size_t size)
+{
+	return false;
+}
+
+bool
+retro_unserialize(const void *data, size_t size)
+{
+	return false;
+}
+
+void retro_set_controller_port_device(unsigned port, unsigned device) {}
+size_t retro_get_memory_size(unsigned id) { return 0; }
+void * retro_get_memory_data(unsigned id) { return NULL; }
+void retro_unload_game(void) {}
+void retro_deinit(void) {}
+void retro_set_audio_sample(retro_audio_sample_t cb) {}
+void retro_cheat_reset(void) {}
+void retro_cheat_set(unsigned index, bool enabled, const char *code) {}
+bool retro_load_game_special(unsigned game_type, const struct retro_game_info *info, size_t num_info) { return false; }
+unsigned retro_get_region(void) { return 0; }
+
