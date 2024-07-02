@@ -36,15 +36,17 @@ z80read(uint16_t a)
 		return rom[a + slotaddr[0]];
 	else if (a < 0x8000)
 		return rom[a - 0x4000 + slotaddr[1]];
-	else if (a < 0xC000)
+	else if (a < 0xC000){
+		printf("== page 2 %x\n", a - 0x8000 + slotaddr[2]);
 		return rom[a - 0x8000 + slotaddr[2]];
-	else
+	}else
 		return mem[a];
 }
 
 void
 z80write(uint16_t a, uint8_t v)
 {
+	printf("z80write %x %x\n", a, v);
 	if (a < 0x8000)
 		printf("wrong z80write %x %x\n", a, v);
     else if (a < 0xE000)
