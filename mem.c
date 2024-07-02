@@ -22,14 +22,22 @@ uint8_t yma1, yma2;
 uint8_t z80bus = 0;
 uint16_t z80bank;
 
+int slotaddr[3] = {0, 0, 0};
+
 uint8_t
 z80read(uint16_t a)
 {
 	printf("z80read %x\n", a);
 	uint16_t v;
 
-	if (a < 0xC000)
+	if (a < 0x400)
 		return rom[a];
+	else if (a < 0x4000)
+		return rom[a + slotaddr[0]];
+	else if (a < 0x8000)
+		return rom[a - 0x4000 + slotaddr[1]];
+	else if (a < 0xC000)
+		return rom[a - 0x8000 + slotaddr[2]];
 	else
 		return mem[a];
 }
@@ -53,25 +61,20 @@ z80write(uint16_t a, uint8_t v)
         switch (a)
         {
             case 0xFFFC:
-            {
                 printf("Persistent RAM");
                 break;
-            }
             case 0xFFFD:
-            {
                 printf("Switch mapper slot 0 to %d\n", v);
+				slotaddr[0] = v * 0x4000;
                 break;
-            }
             case 0xFFFE:
-            {
                 printf("Switch mapper slot 1 to %d\n", v);
+				slotaddr[1] = v * 0x4000;
                 break;
-            }
             case 0xFFFF:
-            {
                 printf("Switch mapper slot 2 to %d\n", v);
+				slotaddr[2] = v * 0x4000;
                 break;
-            }
 		}
 	}
 }
