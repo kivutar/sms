@@ -15,23 +15,25 @@ retro_audio_sample_batch_t audio_cb;
 uint32_t r[16], pc, curpc;
 extern uint16_t spc, scurpc, sp;
 uint32_t asp, irq, stop;
-int nprg;
 uint8_t *sram;
 uint32_t sramctl, nsram, sram0, sram1;
 int doflush = 0;
-uint8_t header[0x7fff];
-uint8_t *prg = NULL;
+// uint8_t header[0x7fff];
+// uint8_t *prg = NULL;
 uint8_t *rom = NULL;
+uint8_t *mem = NULL;
 uint32_t pic[256*224] = {0};
 
 void
 loadrom(const uint8_t *data)
 {
-	memcpy(header, data, sizeof(header));
-	prg = malloc(49152);
-	memcpy(prg, data+sizeof(header), 49152);
-	rom = malloc(49152);
-	memcpy(rom, data, 49152);
+	// memcpy(header, data, sizeof(header));
+	// prg = malloc(0xC000);
+	// memcpy(prg, data+sizeof(header), 0xC000);
+	rom = malloc(0xC000);
+	memcpy(rom, data, 0xC000);
+	mem = malloc(0xC000+0x8000);
+	memcpy(mem, rom, 0xC000);
 	spc = 0;
 }
 
@@ -86,17 +88,20 @@ process_inputs()
 {
 }
 
+int counter = 0;
+
 void
 retro_run(void)
 {
 	input_poll_cb();
 	process_inputs();
 
-	while(!doflush){
+	// while(!doflush){
+		printf("%d ================================\n", counter++);
 		z80step();
-	}
+	// }
 	video_cb(pic, 256, 224, 256*4);
-	//audioout();
+	// audioout();
 	doflush = 0;
 }
 

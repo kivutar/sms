@@ -28,10 +28,10 @@ z80read(uint16_t a)
 	printf("z80read %x\n", a);
 	uint16_t v;
 
-	if (a < 0x8000)
+	if (a < 0xC000)
 		return rom[a];
 	else
-		printf("z80read > 0x8000 %x\n", a);
+		return mem[a];
 }
 
 void
@@ -49,6 +49,30 @@ z80write(uint16_t a, uint8_t v)
 		printf("z80write > 0xE000 %x %x\n", a, v);
         rom[a] = v;
         rom[a - 0x2000]  = v;
+
+        switch (a)
+        {
+            case 0xFFFC:
+            {
+                printf("Persistent RAM");
+                break;
+            }
+            case 0xFFFD:
+            {
+                printf("Switch mapper slot 0 to %d\n", v);
+                break;
+            }
+            case 0xFFFE:
+            {
+                printf("Switch mapper slot 1 to %d\n", v);
+                break;
+            }
+            case 0xFFFF:
+            {
+                printf("Switch mapper slot 2 to %d\n", v);
+                break;
+            }
+		}
 	}
 }
 
