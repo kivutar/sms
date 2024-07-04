@@ -30,8 +30,8 @@ loadrom(const uint8_t *data)
 	// memcpy(header, data, sizeof(header));
 	// prg = malloc(0xC000);
 	// memcpy(prg, data+sizeof(header), 0xC000);
-	rom = malloc(0xC000);
-	memcpy(rom, data, 0xC000);
+	rom = malloc(0x40000);
+	memcpy(rom, data, 0x40000);
 	mem = malloc(0xC000+0x8000);
 	memcpy(mem, rom, 0xC000);
 	spc = 0;
