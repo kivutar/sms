@@ -109,6 +109,7 @@ move(uint8_t dst, uint8_t src)
 static int
 alu(uint8_t op, uint8_t n)
 {
+	printf("alu %x %x\n", op, n);
 	uint8_t v4;
 	uint8_t u;
 	uint16_t v;
@@ -149,13 +150,13 @@ alu(uint8_t op, uint8_t n)
 		v4 = (s[rA] & 0x0f) + (~u & 0x0f) + (~s[rF] & 1);
 		v = s[rA] + (u ^ 0xff) + (~s[rF] & 1);
 		break;
-	case 4: v = s[rA] & u; break;
-	case 5: v = s[rA] ^ u; break;
-	case 6: v = s[rA] | u; break;
+	case 4: {v = s[rA] & u; printf("result: %x <= %x & %x\n", (uint8_t)v, s[rA], u);} break;
+	case 5: {v = s[rA] ^ u; printf("result: %x <= %x ^ %x\n", (uint8_t)v, s[rA], u);} break;
+	case 6: {v = s[rA] | u; printf("result: %x <= %x | %x\n", (uint8_t)v, s[rA], u);} break;
 	}
 	s[rF] = 0;
 	if((uint8_t)v == 0)
-		s[rF] |= FLAGZ;
+		{ s[rF] |= FLAGZ; printf("toggle zero <-------------------------------\n"); }
 	if((v & 0x80) != 0)
 		s[rF] |= FLAGS;
 	if(op < 2){
@@ -188,7 +189,9 @@ static int
 branch(int cc, int t)
 {
 	uint16_t v;
-	
+
+	printf("branch %x %x\n", cc, t);
+
 	v = (int8_t)fetch8();
 	if(!cc)
 		return t + 7;
@@ -202,7 +205,7 @@ inc(uint8_t v)
 	s[rF] &= FLAGC;
 	++v;
 	if(v == 0)
-		s[rF] |= FLAGZ;
+		{ s[rF] |= FLAGZ; printf("toggle zero <-------------------------------\n"); }
 	if((v & 0x80) != 0)
 		s[rF] |= FLAGS;
 	if(v == 0x80)
@@ -218,7 +221,7 @@ dec(uint8_t v)
 	--v;
 	s[rF] = s[rF] & FLAGC | FLAGN;
 	if(v == 0)
-		s[rF] |= FLAGZ;
+		{ s[rF] |= FLAGZ; printf("toggle zero <-------------------------------\n"); }
 	if((v & 0x80) != 0)
 		s[rF] |= FLAGS;
 	if(v == 0x7f)
@@ -257,7 +260,7 @@ adchl(uint16_t u)
 	if((v4 & 0x1000) != 0)
 		s[rF] |= FLAGH;
 	if((uint16_t)v == 0)
-		s[rF] |= FLAGZ;
+		{ s[rF] |= FLAGZ; printf("toggle zero <-------------------------------\n"); }
 	if((v & 0x8000) != 0)
 		s[rF] |= FLAGS;
 	if((~(HL() ^ u) & (HL() ^ v) & 0x8000) != 0)
@@ -279,7 +282,7 @@ sbchl(uint16_t u)
 	if((v4 & 0x1000) == 0)
 		s[rF] |= FLAGH;
 	if((uint16_t)v == 0)
-		s[rF] |= FLAGZ;
+		{ s[rF] |= FLAGZ; printf("toggle zero <-------------------------------\n"); }
 	if((v & 0x8000) != 0)
 		s[rF] |= FLAGS;
 	if(((HL() ^ u) & (HL() ^ v) & 0x8000) != 0)
@@ -377,7 +380,7 @@ bits(int i)
 		case 7:  s[rF] = v & 1; v >>= 1; break;
 		}
 		if(v == 0)
-			s[rF] |= FLAGZ;
+			{ s[rF] |= FLAGZ; printf("toggle zero <-------------------------------\n"); }
 		if((v & 0x80) != 0)
 			s[rF] |= FLAGS;
 		if(!parity(v))
@@ -386,7 +389,7 @@ bits(int i)
 	case 1:
 		s[rF] = s[rF] & ~(FLAGN|FLAGZ) | FLAGH;
 		if((v & 1<<m) == 0)
-			s[rF] |= FLAGZ;
+			{ s[rF] |= FLAGZ; printf("toggle zero <-------------------------------\n"); }
 		return t;
 	case 2:
 		v &= ~(1<<m);
@@ -425,7 +428,7 @@ ed(void)
 			if((v & 0x80) != 0)
 				s[rF] |= FLAGS;
 			if(v == 0)
-				s[rF] |= FLAGZ;
+				{ s[rF] |= FLAGZ; printf("toggle zero <-------------------------------\n"); }
 			if((s[rA] & 0xf) < (u & 0xf))
 				s[rF] |= FLAGH;
 			break;
@@ -464,7 +467,7 @@ ed(void)
 		s[rA] = -s[rA];
 		s[rF] = FLAGN;
 		if(s[rA] == 0)
-			s[rF] |= FLAGZ;
+			{ s[rF] |= FLAGZ; printf("toggle zero <-------------------------------\n"); }
 		else
 			s[rF] |= FLAGC;
 		if((s[rA] & 0x80) != 0)
@@ -490,7 +493,7 @@ ed(void)
 		}
 		s[rF] &= FLAGC;
 		if(s[rA] == 0)
-			s[rF] |= FLAGZ;
+			{ s[rF] |= FLAGZ; printf("toggle zero <-------------------------------\n"); }
 		if((s[rA] & 0x80) != 0)
 			s[rF] |= FLAGS;
 		if(!parity(s[rA]))
@@ -507,9 +510,9 @@ ed(void)
 	case 0x4d: spc = pop16(); return 14;
 	case 0x5e: intm = intm & 0xc0 | 2; return 8;
 	case 0x4f: return 9;
-	case 0x78: printf("- ed78\n"); return 0;
-	case 0x61: printf("- ed61\n"); return 0;
-	case 0x69: printf("- ed69\n"); return 0;
+	case 0x78: s[rA] = z80in(s[rC]); return 12;
+	case 0x61: z80out(s[rC], s[rH]); return 12;
+	case 0x69: z80out(s[rC], s[rL]); return 12;
 	}
 	sysfatal("undefined z80 opcode ed%.2x at pc=%#.4x", op, scurpc);
 	return 0;
@@ -628,7 +631,7 @@ z80step(void)
 		}
 	}
 	scurpc = spc;
-	if(1)
+	if(0)
 		printf("%x AF %.2x%.2x BC %.2x%.2x DE %.2x%.2x HL %.2x%.2x IX %.4x IY %.4x\n", scurpc, s[rA], s[rF], s[rB], s[rC], s[rD], s[rE], s[rH], s[rL], ix[0], ix[1]);
 	op = fetch8();
 	printf("op: %x\n", op);
@@ -695,7 +698,7 @@ z80step(void)
 		if(!parity(s[rA]))
 			s[rF] |= FLAGV;
 		if(s[rA] == 0)
-			s[rF] |= FLAGZ;
+			{ s[rF] |= FLAGZ; printf("toggle zero <-------------------------------\n"); }
 		if((s[rA] & 0x80) != 0)
 			s[rF] |= FLAGS;
 		return 4;
@@ -784,7 +787,7 @@ z80step(void)
 	case 0xd7: return call(0x10, 1);
 	case 0xe7: return call(0x20, 1);
 	case 0xf7: return call(0x30, 1);
-	case 0xc8: if((s[rF] & FLAGZ) != 0) {spc = pop16(); return 11;} return 5;
+	case 0xc8: if((s[rF] & FLAGZ) != 0) {spc = pop16(); return 11;} return 5; // s[rF] should be 44 not 84
 	case 0xd8: if((s[rF] & FLAGC) != 0) {spc = pop16(); return 11;} return 5;
 	case 0xe8: if((s[rF] & FLAGV) != 0) {spc = pop16(); return 11;} return 5;
 	case 0xf8: if((s[rF] & FLAGS) != 0) {spc = pop16(); return 11;} return 5;

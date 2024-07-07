@@ -12,8 +12,6 @@ extern uint16_t ram[32768];
 extern uint8_t *prg;
 extern uint8_t *rom;
 extern uint8_t *mem;
-extern uint8_t *sram;
-extern uint32_t sramctl, sram0, sram1;
 
 enum {
 	MODE1   = 0x00,

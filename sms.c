@@ -15,8 +15,6 @@ retro_audio_sample_batch_t audio_cb;
 uint32_t r[16], pc, curpc;
 extern uint16_t spc, scurpc, sp;
 uint32_t asp, irq, stop;
-uint8_t *sram;
-uint32_t sramctl, nsram, sram0, sram1;
 int doflush = 0;
 // uint8_t header[0x7fff];
 // uint8_t *prg = NULL;
