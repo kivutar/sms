@@ -97,13 +97,32 @@ z80write(uint16_t a, uint8_t v)
 	}
 }
 
+uint8_t portDD = 0xff;
+uint8_t port3E = 0x00;
+uint8_t port3F = 0x00;
+uint8_t port3FHC = 0x00;
+
 uint8_t
-z80in(uint8_t a)
+z80in(uint8_t port)
 {
-	printf("z80in %x\n", a);
-	if (a == 0xBF)
-		return 0x1F;
-	return 0xff;
+	printf("z80in %x\n", port);
+	if (port < 0x40)
+		return 0xff;
+	else if (port >= 0x40 && port < 0x80)
+		if ((port & 0x01) == 0x00)
+			return 0xff; // vdp v counter
+		else
+			return 0xff; // vdp h counter
+	else if ((port >= 0x80) && (port < 0xC0))
+		if ((port & 0x01) == 0x00)
+			return 0xff; // vdp data port
+		else
+			return 0x1f; // vdp status flag
+	else
+		if ((port & 0x01) == 0x00)
+			return 0xff; // port dc
+		else
+			return (portDD & 0x3f) | (port3F & 0xc0); // port dd
 }
 
 void
@@ -111,9 +130,15 @@ z80out(uint8_t port, uint8_t v)
 {
 	printf("z80out %x %x\n", port, v);
 
-	if (port < 0x40)
+	if (port < 0x40){
 		printf("  write to control register\n");
-	else if ((port >= 0x40) && (port < 0x80))
+		if ((port & 0x01) == 0x00)
+			port3E = v;
+        else{
+            port3FHC = v & 0x05;
+            port3F = ((v & 0x80) | (v & 0x20) << 1) & 0xC0;
+        }
+	}else if ((port >= 0x40) && (port < 0x80))
 		printf("  write to SN76489 PSG\n");
 	else if ((port >= 0x80) && (port < 0xC0))
 		printf("  write to VDP\n");
