@@ -3,7 +3,7 @@ TARGET := sms_libretro.so
 SHARED := -shared
 CFLAGS += -O3 -fPIC
 
-OBJ = sms.o z80.o mem.o
+OBJ = sms.o z80.o mem.o vdp.o
 
 .DEFAULT_GOAL := $(TARGET)
 

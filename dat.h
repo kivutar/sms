@@ -13,6 +13,11 @@ extern uint8_t *prg;
 extern uint8_t *rom;
 extern uint8_t *mem;
 
+extern uint16_t vram[32768], vsram[40];
+extern uint32_t cramc[64];
+extern uint16_t vdpstat;
+extern int vdpx, vdpy, frame, intla;
+
 enum {
 	MODE1   = 0x00,
 	MODE2   = 0x01,
