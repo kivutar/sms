@@ -426,8 +426,12 @@ ed(void)
 	case 0xb0: case 0xb1: case 0xb8: case 0xb9:
 		switch(op & 3){
 		default:
-			z80write(DE(), z80read(HL()));
+			uint8_t u = z80read(HL());
+			z80write(DE(), u);
 			s[rF] &= ~(FLAGN|FLAGH);
+			uint16_t n = s[rA] + u;
+			if ((n & 0x08) != 0) s[rF] |= FLAGX; else s[rF] &= ~FLAGX;
+			if ((n & 0x20) != 0) s[rF] |= FLAGY; else s[rF] &= ~FLAGY;
 			l = 1;
 			break;
 		case 1:
