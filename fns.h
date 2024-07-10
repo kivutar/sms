@@ -7,5 +7,7 @@ uint8_t z80read(uint16_t);
 void z80write(uint16_t, uint8_t);
 uint8_t z80in(uint8_t);
 void z80out(uint8_t, uint8_t);
+void vdpstep(void);
 void flush(void);
+void vdpmode(void);
 void ymwrite(uint8_t, uint8_t, uint8_t);

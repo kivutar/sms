@@ -12,6 +12,7 @@ static retro_video_refresh_t video_cb;
 static retro_environment_t environ_cb;
 retro_audio_sample_batch_t audio_cb;
 
+int t = 0;
 uint32_t r[16];
 extern uint16_t pc, curpc, sp;
 uint32_t asp, irq, stop;
@@ -20,7 +21,9 @@ int doflush = 0;
 // uint8_t *prg = NULL;
 uint8_t *rom = NULL;
 uint8_t *mem = NULL;
-uint32_t pic[256*224] = {0};
+uint8_t *pic = NULL;
+
+int vdpclock = 0;
 
 void
 loadrom(const uint8_t *data)
@@ -28,6 +31,7 @@ loadrom(const uint8_t *data)
 	// memcpy(header, data, sizeof(header));
 	// prg = malloc(0xC000);
 	// memcpy(prg, data+sizeof(header), 0xC000);
+	pic = malloc(320 * 224 * 4);
 	rom = malloc(0x40000);
 	memcpy(rom, data, 0x40000);
 	mem = malloc(0xC000+0x8000);
@@ -78,6 +82,7 @@ retro_load_game(const struct retro_game_info *game)
 		return false;
 
 	loadrom(game->data);
+	vdpmode();
 	return true;
 }
 
@@ -94,11 +99,18 @@ retro_run(void)
 	input_poll_cb();
 	process_inputs();
 
-	// while(!doflush){
+	while(!doflush){
 		printf("%d ================================\n", counter++);
-		z80step();
-	// }
-	video_cb(pic, 256, 224, 256*4);
+		t = z80step() * Z80DIV;
+		vdpclock -= t;
+
+		while(vdpclock < 0){
+			vdpstep();
+			vdpclock += 8;
+		}
+	}
+	printf("flush\n");
+	video_cb(pic, 320, 224, 320*4);
 	// audioout();
 	doflush = 0;
 }

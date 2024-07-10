@@ -1,7 +1,7 @@
 
 TARGET := sms_libretro.so
 SHARED := -shared
-CFLAGS += -O3 -fPIC
+CFLAGS += -g -O3 -fPIC
 
 OBJ = sms.o z80.o mem.o vdp.o
 

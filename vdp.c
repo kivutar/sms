@@ -1,10 +1,11 @@
+#include <stdio.h>
 #include "dat.h"
 #include "fns.h"
 
 extern uint8_t *pic;
 
 uint16_t vdpstat = 0x3400;
-int vdpx, vdpy, vdpyy, frame, intla;
+int vdpx = 0, vdpy, vdpyy, frame, intla;
 uint16_t hctr;
 static int xmax, xdisp;
 static int sx, snx, col, pri, lum;
@@ -96,6 +97,7 @@ tile(struct pctxt *p)
 static void
 planeinit(void)
 {
+	printf("planeinit\n");
 	static int szs[] = {5, 6, 6, 7};
 	int v, a, i;
 	struct pctxt *p;
@@ -221,6 +223,7 @@ static struct sprite {
 static void
 spritesinit(void)
 {
+	printf("spritesinit\n");
 	uint16_t t, *p, dy, c;
 	uint32_t v;
 	int i, ns, np, nt;
