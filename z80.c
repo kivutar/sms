@@ -538,6 +538,16 @@ ed(void)
 		return 12;
 	case 0x61: z80out(s[rC], s[rH]); return 12;
 	case 0x69: z80out(s[rC], s[rL]); return 12;
+	case 0xb3:
+		s[rB]--;
+		uint8_t u = z80read(HL());
+		z80write(s[rC], u);
+		addhl(1);
+		if (u & 0x80) s[rF] |= FLAGN; else s[rF] &= ~FLAGN;
+		if (s[rL] + u > 0xff) s[rF] |= (FLAGC|FLAGH); else s[rF] &= ~(FLAGC|FLAGH);
+		if (((s[rL] + u) & 0x07) ^ s[rB]) s[rF] |= FLAGV; else s[rF] &= ~FLAGV;
+		if (s[rB] != 0) { pc -= 2; return 21; }
+		return 16;
 	}
 	sysfatal("undefined z80 opcode ed%.2x at pc=%#.4x", op, curpc);
 	return 0;
