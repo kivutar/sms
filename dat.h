@@ -1,12 +1,12 @@
 #include <stdint.h>
 
-extern uint32_t curpc, irq;
+extern uint32_t irq;
 
 extern uint8_t reg[32];
 extern uint8_t dma;
 
 extern uint8_t z80bus, z80irq;
-extern uint16_t spc, scurpc;
+extern uint16_t pc, curpc;
 
 extern uint16_t ram[32768];
 extern uint8_t *prg;
@@ -35,12 +35,12 @@ enum {
 	DMASRC1 = 0x16,
 	DMASRC2 = 0x17,
 
-	IE0 = 0x20,
-	IE1 = 0x10,
-	DMAEN = 0x10,
-	SHI = 0x08,
+	IE0     = 0x20,
+	IE1     = 0x10,
+	DMAEN   = 0x10,
+	SHI     = 0x08,
 	
-	WIDE = 0x01,
+	WIDE    = 0x01,
 	
 	STATDMA = 0x02,
 	STATHBL = 0x04,
@@ -54,7 +54,7 @@ enum {
 enum {
 	BUSREQ = 1,
 	BUSACK = 2,
-	RESET = 4,
+	RESET  = 4,
 	
 	INTVBL = 1,
 	INTHOR = 2,

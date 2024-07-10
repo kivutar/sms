@@ -7,16 +7,18 @@
 
 #define sysfatal(fmt, ...){printf(fmt"\n", ##__VA_ARGS__); exit(EXIT_FAILURE);}
 
-uint8_t s[16], ipage, intm, z80irq;
-uint16_t ix[2];
-uint16_t spc, scurpc, sp;
+uint8_t ipage, intm, z80irq;
+uint16_t ix[2] = {0xFFFF, 0xFFFF};
+uint16_t pc, curpc, sp;
 int halt;
 
 enum {
 	FLAGC = 0x01,
 	FLAGN = 0x02,
 	FLAGV = 0x04,
+	FLAGX = 0x08,
 	FLAGH = 0x10,
+	FLAGY = 0x20,
 	FLAGZ = 0x40,
 	FLAGS = 0x80
 };
@@ -25,10 +27,17 @@ enum { rB, rC, rD, rE, rH, rL, rHL, rA, rF = rHL };
 #define DE() (s[rD] << 8 | s[rE])
 #define HL() (s[rH] << 8 | s[rL])
 
+uint8_t s[16] = {
+	[rA] = 0x00, [rF] = 0x40,
+	[rB] = 0x00, [rC] = 0x00,
+	[rD] = 0x00, [rE] = 0x00,
+	[rH] = 0x00, [rL] = 0x00,
+};
+
 static uint8_t
 fetch8(void)
 {
-	return z80read(spc++);
+	return z80read(pc++);
 }
 
 static uint16_t
@@ -36,8 +45,8 @@ fetch16(void)
 {
 	uint16_t u;
 	
-	u = z80read(spc++);
-	return u | z80read(spc++) << 8;
+	u = z80read(pc++);
+	return u | z80read(pc++) << 8;
 }
 
 static void
@@ -109,7 +118,6 @@ move(uint8_t dst, uint8_t src)
 static int
 alu(uint8_t op, uint8_t n)
 {
-	printf("alu %x %x\n", op, n);
 	uint8_t v4;
 	uint8_t u;
 	uint16_t v;
@@ -195,7 +203,7 @@ branch(int cc, int t)
 	v = (int8_t)fetch8();
 	if(!cc)
 		return t + 7;
-	spc += v;
+	pc += v;
 	return t + 12;
 }
 
@@ -313,7 +321,7 @@ jump(int cc)
 	
 	v = fetch16();
 	if(cc)
-		spc = v;
+		pc = v;
 	return 10;
 }
 
@@ -322,8 +330,8 @@ call(uint16_t a, int cc)
 {
 	if(!cc)
 		return 10;
-	push16(spc);
-	spc = a;
+	push16(pc);
+	pc = a;
 	return 17;
 }
 
@@ -449,7 +457,7 @@ ed(void)
 		if((s[rC] | s[rB]) != 0){
 			s[rF] |= FLAGV;
 			if((op & 0x10) != 0 && l){
-				spc -= 2;
+				pc -= 2;
 				return 21;
 			}
 		}else
@@ -507,14 +515,31 @@ ed(void)
 	case 0x5b: a = fetch16(); s[rE] = z80read(a++); s[rD] = z80read(a); return 20;
 	case 0x6b: a = fetch16(); s[rL] = z80read(a++); s[rH] = z80read(a); return 20;
 	case 0x7b: sp = read16(fetch16()); return 20;
-	case 0x4d: spc = pop16(); return 14;
+	case 0x4d: pc = pop16(); return 14;
 	case 0x5e: intm = intm & 0xc0 | 2; return 8;
 	case 0x4f: return 9;
-	case 0x78: s[rA] = z80in(s[rC]); return 12;
+	case 0x78:
+		s[rA] = z80in(s[rC]);
+		s[rF] &= FLAGC;
+		if(s[rA] == 0)
+			{ s[rF] |= FLAGZ; printf("toggle zero <-------------------------------\n"); }
+		if((s[rA] & 0x80) != 0)
+			s[rF] |= FLAGS;
+		if(!parity(s[rA]))
+			s[rF] |= FLAGV;
+		if ((s[rA] & 0x08) != 0)
+			s[rF] |= FLAGX;
+		else
+			s[rF] &= ~FLAGX;
+		if ((s[rA] & 0x20) != 0)
+			s[rF] |= FLAGY;
+		else
+			s[rF] &= ~FLAGY;
+		return 12;
 	case 0x61: z80out(s[rC], s[rH]); return 12;
 	case 0x69: z80out(s[rC], s[rL]); return 12;
 	}
-	sysfatal("undefined z80 opcode ed%.2x at pc=%#.4x", op, scurpc);
+	sysfatal("undefined z80 opcode ed%.2x at pc=%#.4x", op, curpc);
 	return 0;
 }
 
@@ -581,7 +606,7 @@ index_(int n)
 	case 0x19: return addindex(n, DE());
 	case 0x29: return addindex(n, ix[n]);
 	case 0x39: return addindex(n, sp);
-	case 0xe9: spc = ix[n]; return 8;
+	case 0xe9: pc = ix[n]; return 8;
 	case 0xf9: sp = ix[n]; return 10;
 	case 0x2a: ix[n] = read16(fetch16()); return 20;
 	case 0x2b: ix[n]--; return 10;
@@ -590,7 +615,7 @@ index_(int n)
 	case 0x2d: dec(ix[n]--); return 8;
 	case 0x2e: ix[n] = ix[n] & 0xff00 | fetch8(); return 11;
 	}
-	sysfatal("undefined z80 opcode %.2x%.2x at pc=%#.4x", n ? 0xfd : 0xdd, op, scurpc);
+	sysfatal("undefined z80 opcode %.2x%.2x at pc=%#.4x", n ? 0xfd : 0xdd, op, curpc);
 	return 0;
 }
 
@@ -602,7 +627,7 @@ z80step(void)
 
 	if((z80bus & RESET) != 0){
 		printf("reset\n");
-		scurpc = spc = 0;
+		curpc = pc = 0;
 		intm = 0;
 		ipage = 0;
 		return 1;
@@ -620,19 +645,19 @@ z80step(void)
 	}
 	if(z80irq != 0 && (intm & 0x80) != 0){
 		printf("irq\n");
-		push16(spc);
+		push16(pc);
 		intm &= 0x3f;
 		switch(intm & 3){
 		case 1:
-			spc = 0x38;
+			pc = 0x38;
 			return 2;
 		default:
 			sysfatal("z80 interrupt in mode %d", intm & 3);
 		}
 	}
-	scurpc = spc;
-	if(0)
-		printf("%x AF %.2x%.2x BC %.2x%.2x DE %.2x%.2x HL %.2x%.2x IX %.4x IY %.4x\n", scurpc, s[rA], s[rF], s[rB], s[rC], s[rD], s[rE], s[rH], s[rL], ix[0], ix[1]);
+	curpc = pc;
+	if(1)
+		printf("%x AF %.2x%.2x BC %.2x%.2x DE %.2x%.2x HL %.2x%.2x IX %.4x IY %.4x\n", curpc, s[rA], s[rF], s[rB], s[rC], s[rD], s[rE], s[rH], s[rL], ix[0], ix[1]);
 	op = fetch8();
 	printf("op: %x\n", op);
 	switch(op >> 6){
@@ -750,10 +775,10 @@ z80step(void)
 	case 0x3f:
 		s[rF] = s[rF] & ~(FLAGN|FLAGH) ^ FLAGC | s[rF] << 4 & FLAGH;
 		return 4;
-	case 0xc0: if((s[rF] & FLAGZ) == 0) {spc = pop16(); return 11;} return 5;
-	case 0xd0: if((s[rF] & FLAGC) == 0) {spc = pop16(); return 11;} return 5;
-	case 0xe0: if((s[rF] & FLAGV) == 0) {spc = pop16(); return 11;} return 5;
-	case 0xf0: if((s[rF] & FLAGS) == 0) {spc = pop16(); return 11;} return 5;
+	case 0xc0: if((s[rF] & FLAGZ) == 0) {pc = pop16(); return 11;} return 5;
+	case 0xd0: if((s[rF] & FLAGC) == 0) {pc = pop16(); return 11;} return 5;
+	case 0xe0: if((s[rF] & FLAGV) == 0) {pc = pop16(); return 11;} return 5;
+	case 0xf0: if((s[rF] & FLAGS) == 0) {pc = pop16(); return 11;} return 5;
 	case 0xc1: s[rC] = pop8(); s[rB] = pop8(); return 10;
 	case 0xd1: s[rE] = pop8(); s[rD] = pop8(); return 10;
 	case 0xe1: s[rL] = pop8(); s[rH] = pop8(); return 10;
@@ -787,11 +812,11 @@ z80step(void)
 	case 0xd7: return call(0x10, 1);
 	case 0xe7: return call(0x20, 1);
 	case 0xf7: return call(0x30, 1);
-	case 0xc8: if((s[rF] & FLAGZ) != 0) {spc = pop16(); return 11;} return 5; // s[rF] should be 44 not 84
-	case 0xd8: if((s[rF] & FLAGC) != 0) {spc = pop16(); return 11;} return 5;
-	case 0xe8: if((s[rF] & FLAGV) != 0) {spc = pop16(); return 11;} return 5;
-	case 0xf8: if((s[rF] & FLAGS) != 0) {spc = pop16(); return 11;} return 5;
-	case 0xc9: spc = pop16(); return 10;
+	case 0xc8: if((s[rF] & FLAGZ) != 0) {pc = pop16(); return 11;} return 5;
+	case 0xd8: if((s[rF] & FLAGC) != 0) {pc = pop16(); return 11;} return 5;
+	case 0xe8: if((s[rF] & FLAGV) != 0) {pc = pop16(); return 11;} return 5;
+	case 0xf8: if((s[rF] & FLAGS) != 0) {pc = pop16(); return 11;} return 5;
+	case 0xc9: pc = pop16(); return 10;
 	case 0xd9:
 		swap(rB);
 		swap(rC);
@@ -800,7 +825,7 @@ z80step(void)
 		swap(rH);
 		swap(rL);
 		return 4;
-	case 0xe9: spc = HL(); return 4;
+	case 0xe9: pc = HL(); return 4;
 	case 0xf9: sp = HL(); return 6;
 	case 0xca: return jump((s[rF] & FLAGZ) != 0);
 	case 0xda: return jump((s[rF] & FLAGC) != 0);
@@ -833,6 +858,6 @@ z80step(void)
 	case 0xef: return call(0x28, 1);
 	case 0xff: return call(0x38, 1);
 	}
-	sysfatal("undefined z80 opcode %#.2x at pc=%#.4x", op, scurpc);
+	sysfatal("undefined z80 opcode %#.2x at pc=%#.4x", op, curpc);
 	return 0;
 }

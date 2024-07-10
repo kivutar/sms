@@ -12,8 +12,8 @@ static retro_video_refresh_t video_cb;
 static retro_environment_t environ_cb;
 retro_audio_sample_batch_t audio_cb;
 
-uint32_t r[16], pc, curpc;
-extern uint16_t spc, scurpc, sp;
+uint32_t r[16];
+extern uint16_t pc, curpc, sp;
 uint32_t asp, irq, stop;
 int doflush = 0;
 // uint8_t header[0x7fff];
@@ -32,7 +32,7 @@ loadrom(const uint8_t *data)
 	memcpy(rom, data, 0x40000);
 	mem = malloc(0xC000+0x8000);
 	memcpy(mem, rom, 0xC000);
-	spc = 0;
+	pc = 0;
 }
 
 void
