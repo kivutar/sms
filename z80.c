@@ -295,6 +295,8 @@ sbchl(uint16_t u)
 		s[rF] |= FLAGS;
 	if(((HL() ^ u) & (HL() ^ v) & 0x8000) != 0)
 		s[rF] |= FLAGV;
+	if ((v & 0x08) != 0) s[rF] |= FLAGX; else s[rF] &= ~FLAGX;
+	if ((v & 0x20) != 0) s[rF] |= FLAGY; else s[rF] &= ~FLAGY;
 	s[rL] = v;
 	s[rH] = v >> 8;
 }
@@ -527,14 +529,8 @@ ed(void)
 			s[rF] |= FLAGS;
 		if(!parity(s[rA]))
 			s[rF] |= FLAGV;
-		if ((s[rA] & 0x08) != 0)
-			s[rF] |= FLAGX;
-		else
-			s[rF] &= ~FLAGX;
-		if ((s[rA] & 0x20) != 0)
-			s[rF] |= FLAGY;
-		else
-			s[rF] &= ~FLAGY;
+		if ((s[rA] & 0x08) != 0) s[rF] |= FLAGX; else s[rF] &= ~FLAGX;
+		if ((s[rA] & 0x20) != 0) s[rF] |= FLAGY; else s[rF] &= ~FLAGY;
 		return 12;
 	case 0x61: z80out(s[rC], s[rH]); return 12;
 	case 0x69: z80out(s[rC], s[rL]); return 12;

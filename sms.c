@@ -136,7 +136,7 @@ retro_set_environment(retro_environment_t cb)
 void
 retro_set_audio_sample_batch(retro_audio_sample_batch_t cb)
 {
-    audio_cb = cb;
+	audio_cb = cb;
 }
 
 void
