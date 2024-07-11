@@ -44,7 +44,7 @@ static uint16_t
 fetch16(void)
 {
 	uint16_t u;
-	
+
 	u = z80read(pc++);
 	return u | z80read(pc++) << 8;
 }
@@ -72,7 +72,7 @@ static uint16_t
 pop16(void)
 {
 	uint16_t v;
-	
+
 	v = z80read(sp++);
 	return v | z80read(sp++) << 8;
 }
@@ -164,7 +164,7 @@ alu(uint8_t op, uint8_t n)
 	}
 	s[rF] = 0;
 	if((uint8_t)v == 0)
-		{ s[rF] |= FLAGZ; printf("toggle zero <-------------------------------\n"); }
+		s[rF] |= FLAGZ;
 	if((v & 0x80) != 0)
 		s[rF] |= FLAGS;
 	if(op < 2){
@@ -213,7 +213,7 @@ inc(uint8_t v)
 	s[rF] &= FLAGC;
 	++v;
 	if(v == 0)
-		{ s[rF] |= FLAGZ; printf("toggle zero <-------------------------------\n"); }
+		s[rF] |= FLAGZ;
 	if((v & 0x80) != 0)
 		s[rF] |= FLAGS;
 	if(v == 0x80)
@@ -229,7 +229,7 @@ dec(uint8_t v)
 	--v;
 	s[rF] = s[rF] & FLAGC | FLAGN;
 	if(v == 0)
-		{ s[rF] |= FLAGZ; printf("toggle zero <-------------------------------\n"); }
+		s[rF] |= FLAGZ;
 	if((v & 0x80) != 0)
 		s[rF] |= FLAGS;
 	if(v == 0x7f)
@@ -243,7 +243,7 @@ static int
 addhl(uint16_t u)
 {
 	uint32_t v;
-	
+
 	s[rF] &= ~(FLAGN|FLAGC|FLAGH);
 	v = HL() + u;
 	if((v & 0x10000) != 0)
@@ -259,7 +259,7 @@ static void
 adchl(uint16_t u)
 {
 	uint32_t v, v4;
-	
+
 	v = HL() + u + (s[rF] & FLAGC);
 	v4 = (HL() & 0xfff) + (u & 0xfff) + (s[rF] & FLAGC);
 	s[rF] = 0;
@@ -268,7 +268,7 @@ adchl(uint16_t u)
 	if((v4 & 0x1000) != 0)
 		s[rF] |= FLAGH;
 	if((uint16_t)v == 0)
-		{ s[rF] |= FLAGZ; printf("toggle zero <-------------------------------\n"); }
+		s[rF] |= FLAGZ;
 	if((v & 0x8000) != 0)
 		s[rF] |= FLAGS;
 	if((~(HL() ^ u) & (HL() ^ v) & 0x8000) != 0)
@@ -281,7 +281,7 @@ static void
 sbchl(uint16_t u)
 {
 	uint32_t v, v4;
-	
+
 	v = HL() + (uint16_t)~u + (~s[rF] & FLAGC);
 	v4 = (HL() & 0xfff) + (~u & 0xfff) + (~s[rF] & FLAGC);
 	s[rF] = FLAGN;
@@ -290,7 +290,7 @@ sbchl(uint16_t u)
 	if((v4 & 0x1000) == 0)
 		s[rF] |= FLAGH;
 	if((uint16_t)v == 0)
-		{ s[rF] |= FLAGZ; printf("toggle zero <-------------------------------\n"); }
+		s[rF] |= FLAGZ;
 	if((v & 0x8000) != 0)
 		s[rF] |= FLAGS;
 	if(((HL() ^ u) & (HL() ^ v) & 0x8000) != 0)
@@ -305,7 +305,7 @@ static int
 addindex(int n, uint16_t u)
 {
 	uint32_t v;
-	
+
 	s[rF] &= ~(FLAGN|FLAGC|FLAGH);
 	v = ix[n] + u;
 	if((v & 0x10000) != 0)
@@ -320,7 +320,7 @@ static int
 jump(int cc)
 {
 	uint16_t v;
-	
+
 	v = fetch16();
 	if(cc)
 		pc = v;
@@ -341,7 +341,7 @@ static void
 swap(uint8_t a)
 {
 	uint8_t v;
-	
+
 	v = s[a];
 	s[a] = s[a + 8];
 	s[a + 8] = v;
@@ -353,7 +353,7 @@ bits(int i)
 	uint8_t op, v, n, m, c;
 	uint16_t a;
 	int t;
-	
+
 	//SET(a, v, t);
 	a = 0;
 	v = 0;
@@ -390,7 +390,7 @@ bits(int i)
 		case 7:  s[rF] = v & 1; v >>= 1; break;
 		}
 		if(v == 0)
-			{ s[rF] |= FLAGZ; printf("toggle zero <-------------------------------\n"); }
+			s[rF] |= FLAGZ;
 		if((v & 0x80) != 0)
 			s[rF] |= FLAGS;
 		if(!parity(v))
@@ -399,7 +399,7 @@ bits(int i)
 	case 1:
 		s[rF] = s[rF] & ~(FLAGN|FLAGZ) | FLAGH;
 		if((v & 1<<m) == 0)
-			{ s[rF] |= FLAGZ; printf("toggle zero <-------------------------------\n"); }
+			s[rF] |= FLAGZ;
 		return t;
 	case 2:
 		v &= ~(1<<m);
@@ -419,7 +419,7 @@ ed(void)
 {
 	uint8_t op, v, u, l;
 	uint16_t a;
-	
+
 	op = fetch8();
 	switch(op){
 	case 0xa0: case 0xa1: case 0xa8: case 0xa9:
@@ -442,7 +442,7 @@ ed(void)
 			if((v & 0x80) != 0)
 				s[rF] |= FLAGS;
 			if(v == 0)
-				{ s[rF] |= FLAGZ; printf("toggle zero <-------------------------------\n"); }
+				s[rF] |= FLAGZ;
 			if((s[rA] & 0xf) < (u & 0xf))
 				s[rF] |= FLAGH;
 			break;
@@ -481,7 +481,7 @@ ed(void)
 		s[rA] = -s[rA];
 		s[rF] = FLAGN;
 		if(s[rA] == 0)
-			{ s[rF] |= FLAGZ; printf("toggle zero <-------------------------------\n"); }
+			s[rF] |= FLAGZ;
 		else
 			s[rF] |= FLAGC;
 		if((s[rA] & 0x80) != 0)
@@ -507,7 +507,7 @@ ed(void)
 		}
 		s[rF] &= FLAGC;
 		if(s[rA] == 0)
-			{ s[rF] |= FLAGZ; printf("toggle zero <-------------------------------\n"); }
+			s[rF] |= FLAGZ;
 		if((s[rA] & 0x80) != 0)
 			s[rF] |= FLAGS;
 		if(!parity(s[rA]))
@@ -528,7 +528,7 @@ ed(void)
 		s[rA] = z80in(s[rC]);
 		s[rF] &= FLAGC;
 		if(s[rA] == 0)
-			{ s[rF] |= FLAGZ; printf("toggle zero <-------------------------------\n"); }
+			s[rF] |= FLAGZ;
 		if((s[rA] & 0x80) != 0)
 			s[rF] |= FLAGS;
 		if(!parity(s[rA]))
@@ -576,7 +576,7 @@ index_(int n)
 {
 	uint8_t op;
 	uint16_t v;
-	
+
 	op = fetch8();
 	switch(op){
 	case 0x40: case 0x41: case 0x42: case 0x43: case 0x47:
@@ -616,8 +616,8 @@ index_(int n)
 		return alu(op >> 3 & 7, 10 + n);
 	case 0x86: case 0x8e: case 0x96: case 0x9e:
 	case 0xa6: case 0xae: case 0xb6: case 0xbe:
-		return alu(op >> 3 & 7, 14 + n);	
-	
+		return alu(op >> 3 & 7, 14 + n);
+
 	case 0x21: ix[n] = fetch16(); return 14;
 	case 0xe1: ix[n] = pop16(); return 14;
 	case 0x22: write16(fetch16(), ix[n]); return 20;
@@ -751,7 +751,7 @@ z80step(void)
 		if(!parity(s[rA]))
 			s[rF] |= FLAGV;
 		if(s[rA] == 0)
-			{ s[rF] |= FLAGZ; printf("toggle zero <-------------------------------\n"); }
+			s[rF] |= FLAGZ;
 		if((s[rA] & 0x80) != 0)
 			s[rF] |= FLAGS;
 		return 4;
