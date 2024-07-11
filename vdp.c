@@ -72,7 +72,7 @@ tile(struct pctxt *p)
 {
 	uint16_t a;
 	int y;
-	
+
 	switch(p - pctxt){
 	default: a = (reg[PANT] & 0x38) << 9; break;
 	case 1: a = (reg[PBNT] & 7) << 12; break;
@@ -101,7 +101,7 @@ planeinit(void)
 	static int szs[] = {5, 6, 6, 7};
 	int v, a, i;
 	struct pctxt *p;
-	
+
 	pctxt[0].hs = pctxt[1].hs = szs[reg[PLSIZ] >> 4 & 3];
 	pctxt[0].ws = pctxt[1].ws = szs[reg[PLSIZ] & 3];
 	pctxt[2].ws = (reg[MODE4] & WIDE) != 0 ? 6 : 5;
@@ -166,7 +166,7 @@ plane(int n, int vis)
 {
 	struct pctxt *p;
 	uint8_t v, pr;
-	
+
 	p = pctxt + n;
 	if((p->t & 0x800) != 0){
 		v = p->c & 15;
@@ -228,7 +228,7 @@ spritesinit(void)
 	uint32_t v;
 	int i, ns, np, nt;
 	struct sprite *q;
-	
+
 	t = (reg[SPRTAB] << 8 & 0x7f00);
 	p = vram + t;
 	q = spr;
@@ -286,7 +286,7 @@ sprites(void)
 	uint16_t dx;
 	int v, col, set;
 	uint32_t *c;
-	
+
 	set = 0;
 	col = 0;
 	for(p = spr; p < lsp; p++){

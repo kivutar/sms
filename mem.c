@@ -27,6 +27,16 @@ uint8_t ram_enabled = 0;
 int slotaddr[3] = {0, 0, 0};
 int nbank = 16;
 
+void
+cramwrite(uint16_t a, uint16_t v)
+{
+	uint32_t w;
+
+	cram[a/2] = v;
+	w = v << 12 & 0xe00000 | v << 8 & 0xe000 | v << 4 & 0xe0;
+	cramc[a/2] = w;
+}
+
 uint8_t
 z80read(uint16_t a)
 {
@@ -134,14 +144,16 @@ z80out(uint8_t port, uint8_t v)
 		printf("  write to control register\n");
 		if ((port & 0x01) == 0x00)
 			port3E = v;
-        else{
-            port3FHC = v & 0x05;
-            port3F = ((v & 0x80) | (v & 0x20) << 1) & 0xC0;
-        }
+		else{
+			port3FHC = v & 0x05;
+			port3F = ((v & 0x80) | (v & 0x20) << 1) & 0xC0;
+		}
 	}else if ((port >= 0x40) && (port < 0x80))
 		printf("  write to SN76489 PSG\n");
-	else if ((port >= 0x80) && (port < 0xC0))
+	else if ((port >= 0x80) && (port < 0xC0)){
 		printf("  write to VDP\n");
-	else
+		//if ((port & 0x01) == 0x00)
+		//vdpwrite(v);
+	}else
 		printf("  write with no effect\n");
 }
