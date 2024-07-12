@@ -4,6 +4,8 @@
 
 extern uint8_t *pic;
 
+uint8_t vdpcode;
+uint8_t vdpaddr;
 uint16_t vdpstat = 0x3400;
 int vdpx = 0, vdpy, vdpyy, frame, intla;
 uint16_t hctr;
@@ -322,6 +324,25 @@ sprites(void)
 			}
 		else
 			pixel(col, set >> 13 | 2);
+}
+
+void
+vdpctrl(uint8_t v)
+{
+	printf("    write to control port %x\n", v);
+	vdpcode = (v >> 6) & 0x03;
+	vdpaddr = (vdpaddr & 0x00ff) | ((v & 0x3f) << 8);
+}
+
+void
+vdpdata(uint8_t v)
+{
+	printf("    write to data port %x\n", v);
+	switch(vdpcode){
+		case 3: cramwrite(vdpaddr, v); break;
+	}
+	vdpaddr++;
+	vdpaddr &= 0x3fff;
 }
 
 void

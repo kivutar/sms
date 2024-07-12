@@ -16,9 +16,6 @@ uint8_t ctl[15];
 
 uint8_t dma;
 uint8_t vdplatch;
-uint16_t vdpaddr, vdpdata;
-
-uint8_t yma1, yma2;
 
 uint8_t z80bus = 0;
 uint16_t ram_bank;
@@ -32,9 +29,14 @@ cramwrite(uint16_t a, uint16_t v)
 {
 	uint32_t w;
 
-	cram[a/2] = v;
+	cram[a & 0x1f] = v;
 	w = v << 12 & 0xe00000 | v << 8 & 0xe000 | v << 4 & 0xe0;
 	cramc[a/2] = w;
+
+	printf("cramwrite %x %x\n", a, v);
+	for(int i=0;i<64;i++)
+		printf("%x ", cram[i]);
+	printf("\n");
 }
 
 uint8_t
@@ -153,9 +155,9 @@ z80out(uint8_t port, uint8_t v)
 	else if ((port >= 0x80) && (port < 0xC0)){
 		printf("  write to VDP\n");
 		if ((port & 0x01) == 0x00)
-			printf("    write to data port %x\n", v);
+			vdpdata(v);
 		else
-			printf("    write to control port %x\n", v);
+			vdpctrl(v);
 	}else
 		printf("  write with no effect\n");
 }
