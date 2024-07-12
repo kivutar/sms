@@ -152,8 +152,10 @@ z80out(uint8_t port, uint8_t v)
 		printf("  write to SN76489 PSG\n");
 	else if ((port >= 0x80) && (port < 0xC0)){
 		printf("  write to VDP\n");
-		//if ((port & 0x01) == 0x00)
-		//vdpwrite(v);
+		if ((port & 0x01) == 0x00)
+			printf("    write to data port %x\n", v);
+		else
+			printf("    write to control port %x\n", v);
 	}else
 		printf("  write with no effect\n");
 }
