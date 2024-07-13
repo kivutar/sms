@@ -119,14 +119,14 @@ z80in(uint8_t port)
 		return 0xff;
 	else if (port >= 0x40 && port < 0x80)
 		if ((port & 0x01) == 0x00)
-			return 0xff; // vdp v counter
+			return vdpvcounter();
 		else
-			return 0xff; // vdp h counter
+			return vdphcounter();
 	else if ((port >= 0x80) && (port < 0xC0))
 		if ((port & 0x01) == 0x00)
-			return 0xff; // vdp data port
+			return vdpdataport();
 		else
-			return vdpstatus(); // vdp status flag
+			return vdpstatus();
 	else
 		if ((port & 0x01) == 0x00)
 			return 0xff; // port dc

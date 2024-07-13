@@ -10,6 +10,7 @@ uint8_t vdpaddr;
 uint8_t vdpbuf;
 uint8_t vdpstat = 0;
 int vdpx = 0, vdpy, vdpyy, frame, intla;
+int first = 0;
 uint16_t hctr;
 static int xmax, xdisp;
 static int sx, snx, col, pri, lum;
@@ -332,8 +333,16 @@ void
 vdpctrl(uint8_t v)
 {
 	printf("    vdp write to control port %x\n", v);
+
+	if(first){
+	    first = 0;
+        vdpaddr = (vdpaddr & 0xFF00) | v;
+        return;
+	}
+
 	vdpcode = (v >> 6) & 0x03;
 	vdpaddr = (vdpaddr & 0x00ff) | ((v & 0x3f) << 8);
+	first = 1;
 
 	switch(vdpcode){
 		case 0:
@@ -358,13 +367,40 @@ vdpdata(uint8_t v)
 }
 
 uint8_t
+vdpdataport(void)
+{
+    uint8_t v = vdpbuf;
+    vdpbuf = vram[vdpaddr];
+    vdpaddr++;
+    vdpaddr &= 0x3fff;
+    printf("    vdp read from data port %x\n", v);
+    first = 1;
+    return v;
+}
+
+uint8_t
 vdpstatus(void)
 {
     uint8_t v = vdpstat | 0x1f;
     vdpstat = 0;
     z80irq = 0;
-    printf("    vdp status %x\n", v);
+    printf("    vdp read status flags %x\n", v);
+    first = 1;
     return v;
+}
+
+uint8_t
+vdphcounter(void)
+{
+    printf("    vdp read hcounter %x\n", vdpx);
+    return vdpx;
+}
+
+uint8_t
+vdpvcounter(void)
+{
+    printf("    vdp read vcounter %x\n", vdpy);
+    return vdpy;
 }
 
 void
