@@ -15,7 +15,6 @@ extern uint8_t *mem;
 
 extern uint16_t vram[32768], vsram[40];
 extern uint32_t cramc[64];
-extern uint16_t vdpstat;
 extern int vdpx, vdpy, frame, intla;
 
 enum {
@@ -44,9 +43,9 @@ enum {
 	IE1     = 0x10,
 	DMAEN   = 0x10,
 	SHI     = 0x08,
-	
+
 	WIDE    = 0x01,
-	
+
 	STATDMA = 0x02,
 	STATHBL = 0x04,
 	STATVBL = 0x08,
@@ -60,7 +59,7 @@ enum {
 	BUSREQ = 1,
 	BUSACK = 2,
 	RESET  = 4,
-	
+
 	INTVBL = 1,
 	INTHOR = 2,
 };

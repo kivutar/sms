@@ -27,11 +27,8 @@ int nbank = 16;
 void
 cramwrite(uint16_t a, uint16_t v)
 {
-	uint32_t w;
-
 	cram[a & 0x1f] = v;
-	w = v << 12 & 0xe00000 | v << 8 & 0xe000 | v << 4 & 0xe0;
-	cramc[a & 0x1f] = w;
+	cramc[a & 0x1f] = v << 12 & 0xe00000 | v << 8 & 0xe000 | v << 4 & 0xe0;
 
 	printf("cramwrite %x %x\n", a, v);
 	for(int i=0;i<64;i++)
@@ -129,7 +126,7 @@ z80in(uint8_t port)
 		if ((port & 0x01) == 0x00)
 			return 0xff; // vdp data port
 		else
-			return 0x1f; // vdp status flag
+			return vdpstatus(); // vdp status flag
 	else
 		if ((port & 0x01) == 0x00)
 			return 0xff; // port dc

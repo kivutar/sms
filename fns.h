@@ -12,4 +12,5 @@ void vdpmode(void);
 void vdpctrl(uint8_t);
 void vdpdata(uint8_t);
 void vdpstep(void);
+uint8_t vdpstatus(void);
 void cramwrite(uint16_t, uint16_t);

@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <stdio.h>
 #include "dat.h"
 #include "fns.h"
@@ -7,7 +8,7 @@ extern uint8_t *pic;
 uint8_t vdpcode;
 uint8_t vdpaddr;
 uint8_t vdpbuf;
-uint16_t vdpstat = 0x3400;
+uint8_t vdpstat = 0;
 int vdpx = 0, vdpy, vdpyy, frame, intla;
 uint16_t hctr;
 static int xmax, xdisp;
@@ -354,6 +355,16 @@ vdpdata(uint8_t v)
 	}
 	vdpaddr++;
 	vdpaddr &= 0x3fff;
+}
+
+uint8_t
+vdpstatus(void)
+{
+    uint8_t v = vdpstat | 0x1f;
+    vdpstat = 0;
+    z80irq = 0;
+    printf("    vdp status %x\n", v);
+    return v;
 }
 
 void
