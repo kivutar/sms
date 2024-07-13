@@ -31,7 +31,7 @@ cramwrite(uint16_t a, uint16_t v)
 
 	cram[a & 0x1f] = v;
 	w = v << 12 & 0xe00000 | v << 8 & 0xe000 | v << 4 & 0xe0;
-	cramc[a/2] = w;
+	cramc[a & 0x1f] = w;
 
 	printf("cramwrite %x %x\n", a, v);
 	for(int i=0;i<64;i++)
@@ -42,7 +42,7 @@ cramwrite(uint16_t a, uint16_t v)
 uint8_t
 z80read(uint16_t a)
 {
-	printf("z80read %x\n", a);
+	// printf("z80read %x\n", a);
 	uint16_t v;
 
 	if (a < 0x400)
@@ -66,7 +66,7 @@ z80read(uint16_t a)
 void
 z80write(uint16_t a, uint8_t v)
 {
-	printf("z80write %x %x\n", a, v);
+	// printf("z80write %x %x\n", a, v);
 	if (a < 0x8000)
 		printf("wrong z80write page 0 or 1 %x %x\n", a, v);
 	else if (a < 0xC000)
@@ -117,7 +117,7 @@ uint8_t port3FHC = 0x00;
 uint8_t
 z80in(uint8_t port)
 {
-	printf("z80in %x\n", port);
+	// printf("z80in %x\n", port);
 	if (port < 0x40)
 		return 0xff;
 	else if (port >= 0x40 && port < 0x80)
@@ -140,7 +140,7 @@ z80in(uint8_t port)
 void
 z80out(uint8_t port, uint8_t v)
 {
-	printf("z80out %x %x\n", port, v);
+	// printf("z80out %x %x\n", port, v);
 
 	if (port < 0x40){
 		printf("  write to control register\n");
@@ -153,7 +153,7 @@ z80out(uint8_t port, uint8_t v)
 	}else if ((port >= 0x40) && (port < 0x80))
 		printf("  write to SN76489 PSG\n");
 	else if ((port >= 0x80) && (port < 0xC0)){
-		printf("  write to VDP\n");
+		// printf("  write to VDP\n");
 		if ((port & 0x01) == 0x00)
 			vdpdata(v);
 		else

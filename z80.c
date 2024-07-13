@@ -43,9 +43,7 @@ fetch8(void)
 static uint16_t
 fetch16(void)
 {
-	uint16_t u;
-
-	u = z80read(pc++);
+	uint16_t u = z80read(pc++);
 	return u | z80read(pc++) << 8;
 }
 
@@ -71,9 +69,7 @@ pop8(void)
 static uint16_t
 pop16(void)
 {
-	uint16_t v;
-
-	v = z80read(sp++);
+	uint16_t v = z80read(sp++);
 	return v | z80read(sp++) << 8;
 }
 
@@ -158,9 +154,9 @@ alu(uint8_t op, uint8_t n)
 		v4 = (s[rA] & 0x0f) + (~u & 0x0f) + (~s[rF] & 1);
 		v = s[rA] + (u ^ 0xff) + (~s[rF] & 1);
 		break;
-	case 4: {v = s[rA] & u; printf("result: %x <= %x & %x\n", (uint8_t)v, s[rA], u);} break;
-	case 5: {v = s[rA] ^ u; printf("result: %x <= %x ^ %x\n", (uint8_t)v, s[rA], u);} break;
-	case 6: {v = s[rA] | u; printf("result: %x <= %x | %x\n", (uint8_t)v, s[rA], u);} break;
+	case 4: v = s[rA] & u; break;
+	case 5: v = s[rA] ^ u; break;
+	case 6: v = s[rA] | u; break;
 	}
 	s[rF] = 0;
 	if((uint8_t)v == 0)
@@ -196,11 +192,7 @@ alu(uint8_t op, uint8_t n)
 static int
 branch(int cc, int t)
 {
-	uint16_t v;
-
-	printf("branch %x %x\n", cc, t);
-
-	v = (int8_t)fetch8();
+	uint16_t v = (int8_t)fetch8();
 	if(!cc)
 		return t + 7;
 	pc += v;
@@ -242,10 +234,8 @@ dec(uint8_t v)
 static int
 addhl(uint16_t u)
 {
-	uint32_t v;
-
 	s[rF] &= ~(FLAGN|FLAGC|FLAGH);
-	v = HL() + u;
+	uint32_t v = HL() + u;
 	if((v & 0x10000) != 0)
 		s[rF] |= FLAGC;
 	if((HL() & 0xfff) + (u & 0xfff) >= 0x1000)
@@ -258,10 +248,8 @@ addhl(uint16_t u)
 static void
 adchl(uint16_t u)
 {
-	uint32_t v, v4;
-
-	v = HL() + u + (s[rF] & FLAGC);
-	v4 = (HL() & 0xfff) + (u & 0xfff) + (s[rF] & FLAGC);
+	uint32_t v = HL() + u + (s[rF] & FLAGC);
+	uint32_t v4 = (HL() & 0xfff) + (u & 0xfff) + (s[rF] & FLAGC);
 	s[rF] = 0;
 	if((v & 0x10000) != 0)
 		s[rF] |= FLAGC;
@@ -280,10 +268,8 @@ adchl(uint16_t u)
 static void
 sbchl(uint16_t u)
 {
-	uint32_t v, v4;
-
-	v = HL() + (uint16_t)~u + (~s[rF] & FLAGC);
-	v4 = (HL() & 0xfff) + (~u & 0xfff) + (~s[rF] & FLAGC);
+	uint32_t v = HL() + (uint16_t)~u + (~s[rF] & FLAGC);
+	uint32_t v4 = (HL() & 0xfff) + (~u & 0xfff) + (~s[rF] & FLAGC);
 	s[rF] = FLAGN;
 	if((v & 0x10000) == 0)
 		s[rF] |= FLAGC;
@@ -304,10 +290,8 @@ sbchl(uint16_t u)
 static int
 addindex(int n, uint16_t u)
 {
-	uint32_t v;
-
 	s[rF] &= ~(FLAGN|FLAGC|FLAGH);
-	v = ix[n] + u;
+	uint32_t v = ix[n] + u;
 	if((v & 0x10000) != 0)
 		s[rF] |= FLAGC;
 	if((ix[n] & 0xfff) + (u & 0xfff) >= 0x1000)
@@ -319,9 +303,7 @@ addindex(int n, uint16_t u)
 static int
 jump(int cc)
 {
-	uint16_t v;
-
-	v = fetch16();
+	uint16_t v = fetch16();
 	if(cc)
 		pc = v;
 	return 10;
@@ -340,9 +322,7 @@ call(uint16_t a, int cc)
 static void
 swap(uint8_t a)
 {
-	uint8_t v;
-
-	v = s[a];
+	uint8_t v = s[a];
 	s[a] = s[a + 8];
 	s[a + 8] = v;
 }
@@ -421,13 +401,13 @@ ed(void)
 	uint16_t a;
 
 	op = fetch8();
-	printf("ed %.2x\n", op);
+	// printf("ed %.2x\n", op);
 	switch(op){
 	case 0xa0: case 0xa1: case 0xa8: case 0xa9:
 	case 0xb0: case 0xb1: case 0xb8: case 0xb9:
 		switch(op & 3){
 		default:
-			uint8_t u = z80read(HL());
+			u = z80read(HL());
 			z80write(DE(), u);
 			s[rF] &= ~(FLAGN|FLAGH);
 			uint16_t n = s[rA] + u;
@@ -575,10 +555,9 @@ ed(void)
 static int
 index_(int n)
 {
-	uint8_t op;
 	uint16_t v;
 
-	op = fetch8();
+	uint8_t op = fetch8();
 	switch(op){
 	case 0x40: case 0x41: case 0x42: case 0x43: case 0x47:
 	case 0x48: case 0x49: case 0x4a: case 0x4b: case 0x4f:
@@ -685,10 +664,10 @@ z80step(void)
 		}
 	}
 	curpc = pc;
-	if(1)
+	if(0)
 		printf("%x AF %.2x%.2x BC %.2x%.2x DE %.2x%.2x HL %.2x%.2x IX %.4x IY %.4x\n", curpc, s[rA], s[rF], s[rB], s[rC], s[rD], s[rE], s[rH], s[rL], ix[0], ix[1]);
 	op = fetch8();
-	printf("op: %x\n", op);
+	// printf("op: %x\n", op);
 	switch(op >> 6){
 	case 1: return move(op >> 3 & 7, op & 7);
 	case 2: return alu(op >> 3 & 7, op & 7);

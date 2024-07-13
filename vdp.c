@@ -6,6 +6,7 @@ extern uint8_t *pic;
 
 uint8_t vdpcode;
 uint8_t vdpaddr;
+uint8_t vdpbuf;
 uint16_t vdpstat = 0x3400;
 int vdpx = 0, vdpy, vdpyy, frame, intla;
 uint16_t hctr;
@@ -99,7 +100,7 @@ tile(struct pctxt *p)
 static void
 planeinit(void)
 {
-	printf("planeinit\n");
+	// printf("planeinit\n");
 	static int szs[] = {5, 6, 6, 7};
 	int v, a, i;
 	struct pctxt *p;
@@ -225,7 +226,7 @@ static struct sprite {
 static void
 spritesinit(void)
 {
-	printf("spritesinit\n");
+	// printf("spritesinit\n");
 	uint16_t t, *p, dy, c;
 	uint32_t v;
 	int i, ns, np, nt;
@@ -329,16 +330,26 @@ sprites(void)
 void
 vdpctrl(uint8_t v)
 {
-	printf("    write to control port %x\n", v);
+	printf("    vdp write to control port %x\n", v);
 	vdpcode = (v >> 6) & 0x03;
 	vdpaddr = (vdpaddr & 0x00ff) | ((v & 0x3f) << 8);
+
+	switch(vdpcode){
+		case 0:
+			vdpbuf = vram[vdpaddr];
+			vdpaddr++;
+			vdpaddr &= 0x3fff;
+			break;
+		case 2: reg[v & 0x0f] = (vdpaddr & 0x00ff); break;
+	}
 }
 
 void
 vdpdata(uint8_t v)
 {
-	printf("    write to data port %x\n", v);
+	printf("    vdp write to data port %x\n", v);
 	switch(vdpcode){
+		case 0: case 1: case 2: vram[vdpaddr] = v; break;
 		case 3: cramwrite(vdpaddr, v); break;
 	}
 	vdpaddr++;

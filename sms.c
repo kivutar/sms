@@ -96,11 +96,11 @@ int counter = 0;
 void
 retro_run(void)
 {
+	printf("%d ================================\n", counter++);
 	input_poll_cb();
 	process_inputs();
 
 	while(!doflush){
-		printf("%d ================================\n", counter++);
 		t = z80step() * Z80DIV;
 		vdpclock -= t;
 
@@ -109,7 +109,7 @@ retro_run(void)
 			vdpclock += 8;
 		}
 	}
-	printf("flush\n");
+
 	video_cb(pic, 320, 224, 320*4);
 	// audioout();
 	doflush = 0;
