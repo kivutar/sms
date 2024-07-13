@@ -60,9 +60,9 @@ retro_get_system_av_info(struct retro_system_av_info *info)
 	info->timing.fps = 60.0;
 	info->timing.sample_rate = 48000;
 
-	info->geometry.base_width = 256;
+	info->geometry.base_width = 320;
 	info->geometry.base_height = 224;
-	info->geometry.max_width = 256;
+	info->geometry.max_width = 320;
 	info->geometry.max_height = 224;
 	info->geometry.aspect_ratio = 4.0 / 3.0;
 }
@@ -92,6 +92,7 @@ process_inputs()
 }
 
 int counter = 0;
+int total = 0;
 
 void
 retro_run(void)
@@ -101,12 +102,21 @@ retro_run(void)
 	process_inputs();
 
 	while(!doflush){
-		t = z80step() * Z80DIV;
-		vdpclock -= t;
+		t = z80step();
+		printf("cycles: %d\n", t);
+		vdpclock -= t * Z80DIV;
+		total += t * Z80DIV;
 
 		while(vdpclock < 0){
 			vdpstep();
 			vdpclock += 8;
+		}
+
+		if (total > 702240){
+			flush();
+			total = 0;
+			vdpx = 0;
+			vdpy = 0;
 		}
 	}
 
@@ -185,4 +195,3 @@ void retro_cheat_reset(void) {}
 void retro_cheat_set(unsigned index, bool enabled, const char *code) {}
 bool retro_load_game_special(unsigned game_type, const struct retro_game_info *info, size_t num_info) { return false; }
 unsigned retro_get_region(void) { return 0; }
-

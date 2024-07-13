@@ -320,6 +320,16 @@ call(uint16_t a, int cc)
 	return 17;
 }
 
+static int
+call2(uint16_t a, int cc)
+{
+	if(!cc)
+		return 0;
+	push16(pc);
+	pc = a;
+	return 11;
+}
+
 static void
 swap(uint8_t a)
 {
@@ -817,10 +827,10 @@ z80step(void)
 	case 0xd6: return alu(2, 8);
 	case 0xe6: return alu(4, 8);
 	case 0xf6: return alu(6, 8);
-	case 0xc7: return call(0x00, 1);
-	case 0xd7: return call(0x10, 1);
-	case 0xe7: return call(0x20, 1);
-	case 0xf7: return call(0x30, 1);
+	case 0xc7: return call2(0x00, 1);
+	case 0xd7: return call2(0x10, 1);
+	case 0xe7: return call2(0x20, 1);
+	case 0xf7: return call2(0x30, 1);
 	case 0xc8: if((s[rF] & FLAGZ) != 0) {pc = pop16(); return 11;} return 5;
 	case 0xd8: if((s[rF] & FLAGC) != 0) {pc = pop16(); return 11;} return 5;
 	case 0xe8: if((s[rF] & FLAGV) != 0) {pc = pop16(); return 11;} return 5;
@@ -842,8 +852,8 @@ z80step(void)
 	case 0xfa: return jump((s[rF] & FLAGS) != 0);
 	case 0xcb: return bits(-1);
 	case 0xdb:
-		if(inplast){ s[rA] = z80in(fetch8()); inplast = 0; return 10;
-		}else{ pc--; inplast = 1; return 1; }
+		if(inplast){ s[rA] = z80in(fetch8()); inplast = 0; return 1;
+		}else{ pc--; inplast = 1; return 10; }
 	case 0xeb:
 		v = DE();
 		s[rD] = s[rH];
@@ -864,10 +874,10 @@ z80step(void)
 	case 0xde: return alu(3, 8);
 	case 0xee: return alu(5, 8);
 	case 0xfe: return alu(7, 8);
-	case 0xcf: return call(0x08, 1);
-	case 0xdf: return call(0x18, 1);
-	case 0xef: return call(0x28, 1);
-	case 0xff: return call(0x38, 1);
+	case 0xcf: return call2(0x08, 1);
+	case 0xdf: return call2(0x18, 1);
+	case 0xef: return call2(0x28, 1);
+	case 0xff: return call2(0x38, 1);
 	}
 	sysfatal("undefined z80 opcode %#.2x at pc=%#.4x", op, curpc);
 	return 0;
