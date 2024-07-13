@@ -11,6 +11,7 @@ uint8_t ipage, intm, z80irq;
 uint16_t ix[2] = {0xFFFF, 0xFFFF};
 uint16_t pc, curpc, sp;
 int halt;
+int inplast;
 
 enum {
 	FLAGC = 0x01,
@@ -664,10 +665,10 @@ z80step(void)
 		}
 	}
 	curpc = pc;
-	if(0)
+	if(1)
 		printf("%x AF %.2x%.2x BC %.2x%.2x DE %.2x%.2x HL %.2x%.2x IX %.4x IY %.4x\n", curpc, s[rA], s[rF], s[rB], s[rC], s[rD], s[rE], s[rH], s[rL], ix[0], ix[1]);
 	op = fetch8();
-	// printf("op: %x\n", op);
+	printf("op: %x\n", op);
 	switch(op >> 6){
 	case 1: return move(op >> 3 & 7, op & 7);
 	case 2: return alu(op >> 3 & 7, op & 7);
@@ -840,7 +841,9 @@ z80step(void)
 	case 0xea: return jump((s[rF] & FLAGV) != 0);
 	case 0xfa: return jump((s[rF] & FLAGS) != 0);
 	case 0xcb: return bits(-1);
-	case 0xdb: s[rA] = z80in(fetch8()); return 11;
+	case 0xdb:
+		if(inplast){ s[rA] = z80in(fetch8()); inplast = 0; return 10;
+		}else{ pc--; inplast = 1; return 1; }
 	case 0xeb:
 		v = DE();
 		s[rD] = s[rH];
