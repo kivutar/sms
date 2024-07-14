@@ -537,6 +537,7 @@ ed(void)
 		uint8_t u = z80read(HL());
 		z80out(s[rC], u);
 		addhl(1);
+		if (s[rB] == 0) s[rF] |= FLAGZ; else s[rF] &= ~FLAGZ;
 		if (u & 0x80) s[rF] |= FLAGN; else s[rF] &= ~FLAGN;
 		if (s[rL] + u > 0xff) s[rF] |= (FLAGC|FLAGH); else s[rF] &= ~(FLAGC|FLAGH);
 		if (((s[rL] + u) & 0x07) ^ s[rB]) s[rF] |= FLAGV; else s[rF] &= ~FLAGV;
