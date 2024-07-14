@@ -541,6 +541,8 @@ ed(void)
 		if (u & 0x80) s[rF] |= FLAGN; else s[rF] &= ~FLAGN;
 		if (s[rL] + u > 0xff) s[rF] |= (FLAGC|FLAGH); else s[rF] &= ~(FLAGC|FLAGH);
 		if (((s[rL] + u) & 0x07) ^ s[rB]) s[rF] |= FLAGV; else s[rF] &= ~FLAGV;
+		if ((s[rB] & 0x08) != 0) s[rF] |= FLAGX; else s[rF] &= ~FLAGX;
+		if ((s[rB] & 0x20) != 0) s[rF] |= FLAGY; else s[rF] &= ~FLAGY;
 		if (s[rB] != 0) { pc -= 2; return 21; }
 		return 16;
 	case 0xa3:
