@@ -105,12 +105,13 @@ retro_run(void)
 		t = z80step();
 		printf("cycles: %d\n", t);
 		vdpclock -= t * Z80DIV;
-		total += t * Z80DIV;
+		total += t;
 
 		while(vdpclock < 0){
 			vdpstep();
 			vdpclock += 8;
 		}
+		printf("    vdp registers: %x %x %x %x %x %x %x %x %x %x %x %x %x %x %x %x\n", reg[0], reg[1], reg[2], reg[3], reg[4], reg[5], reg[6], reg[7], reg[8], reg[9], reg[10], reg[11], reg[12], reg[13], reg[14], reg[15]);
 
 		if (total > 702240){
 			flush();
@@ -123,6 +124,7 @@ retro_run(void)
 	video_cb(pic, 320, 224, 320*4);
 	// audioout();
 	doflush = 0;
+	total = 0;
 }
 
 void

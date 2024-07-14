@@ -2,7 +2,7 @@
 
 extern uint32_t irq;
 
-extern uint8_t reg[32];
+extern uint8_t reg[16];
 extern uint8_t dma;
 
 extern uint8_t z80bus, z80irq;

@@ -293,6 +293,7 @@ sprites(void)
 	set = 0;
 	col = 0;
 	for(p = spr; p < lsp; p++){
+		printf("p->x: %d, p->y: %d\n", p->x, p->y);
 		dx = vdpx - p->x;
 		if(dx >= p->w)
 			continue;
@@ -341,6 +342,7 @@ vdpctrl(uint8_t v)
 
 	vdpcode = (v >> 6) & 0x03;
 	vdpaddr = (vdpaddr & 0x00ff) | ((v & 0x3f) << 8);
+
 	printf("vdp code and address %x %x\n", vdpcode, vdpaddr);
 	first = 1;
 
