@@ -531,6 +531,7 @@ ed(void)
 		return 12;
 	case 0x61: z80out(s[rC], s[rH]); return 12;
 	case 0x69: z80out(s[rC], s[rL]); return 12;
+	case 0x79: z80out(s[rC], s[rA]); return 12;
 	case 0xb3:
 		s[rB]--;
 		uint8_t u = z80read(HL());
