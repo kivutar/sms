@@ -185,6 +185,8 @@ alu(uint8_t op, uint8_t n)
 		if(op == 4)
 			s[rF] |= FLAGH;
 	}
+	if((v & 0x08) != 0) s[rF] |= FLAGX; else s[rF] &= ~FLAGX;
+	if((v & 0x20) != 0) s[rF] |= FLAGY; else s[rF] &= ~FLAGY;
 	if(op != 7)
 		s[rA] = v;
 	return 4+t;
