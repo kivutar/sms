@@ -5,12 +5,10 @@
 
 extern uint8_t *pic;
 
-uint8_t vdpcode;
-uint8_t vdpaddr;
-uint8_t vdpbuf;
-uint8_t vdpstat = 0;
+uint8_t vdpcode, vdpbuf, vdpstat = 0;
+uint16_t vdpaddr;
 int vdpx = 0, vdpy, vdpyy, frame, intla;
-int first = 0;
+int first = 1;
 uint16_t hctr;
 static int xmax, xdisp;
 static int sx, snx, col, pri, lum;
@@ -335,13 +333,15 @@ vdpctrl(uint8_t v)
 	printf("    vdp write to control port %x\n", v);
 
 	if(first){
-	    first = 0;
-        vdpaddr = (vdpaddr & 0xFF00) | v;
-        return;
+		printf("first\n");
+		first = 0;
+		vdpaddr = (vdpaddr & 0xFF00) | v;
+		return;
 	}
 
 	vdpcode = (v >> 6) & 0x03;
 	vdpaddr = (vdpaddr & 0x00ff) | ((v & 0x3f) << 8);
+	printf("vdp code and address %x %x\n", vdpcode, vdpaddr);
 	first = 1;
 
 	switch(vdpcode){
@@ -357,7 +357,9 @@ vdpctrl(uint8_t v)
 void
 vdpdata(uint8_t v)
 {
-	printf("    vdp write to data port %x\n", v);
+	printf("    vdp (code: %x) write to data port %x\n", vdpcode, v);
+	first = 1;
+	vdpbuf = v;
 	switch(vdpcode){
 		case 0: case 1: case 2: vram[vdpaddr] = v; break;
 		case 3: cramwrite(vdpaddr, v); break;
@@ -451,7 +453,7 @@ vdpstep(void)
 		if(vdpy == yvbl){
 			vdpstat |= STATVBL | STATINT;
 			frame ^= 1;
-			z80irq = 1;
+			// z80irq = 1;
 			if((reg[MODE2] & IE0) != 0)
 				irq |= INTVBL;
 		}
