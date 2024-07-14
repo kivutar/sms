@@ -409,10 +409,10 @@ static int
 ed(void)
 {
 	uint8_t op, v, u, l;
-	uint16_t a;
+	uint16_t a, n;
 
 	op = fetch8();
-	// printf("ed %.2x\n", op);
+	printf("ed %.2x\n", op);
 	switch(op){
 	case 0xa0: case 0xa1: case 0xa8: case 0xa9:
 	case 0xb0: case 0xb1: case 0xb8: case 0xb9:
@@ -421,14 +421,13 @@ ed(void)
 			u = z80read(HL());
 			z80write(DE(), u);
 			s[rF] &= ~(FLAGN|FLAGH);
-			uint16_t n = s[rA] + u;
-			if ((n & 0x08) != 0) s[rF] |= FLAGX; else s[rF] &= ~FLAGX;
-			if ((n & 0x20) != 0) s[rF] |= FLAGY; else s[rF] &= ~FLAGY;
+			n = s[rA] + u;
 			l = 1;
 			break;
 		case 1:
 			u = z80read(HL());
 			v = s[rA] - u;
+			n = s[rA] + u;
 			s[rF] = s[rF] & ~(FLAGS|FLAGZ|FLAGH) | FLAGN;
 			l = v != 0;
 			if((v & 0x80) != 0)
@@ -439,6 +438,8 @@ ed(void)
 				s[rF] |= FLAGH;
 			break;
 		}
+		if ((n & 0x08) != 0) s[rF] |= FLAGX; else s[rF] &= ~FLAGX;
+		if ((n & 0x02) != 0) s[rF] |= FLAGY; else s[rF] &= ~FLAGY;
 		if((op & 8) != 0){
 			if((op & 3) == 0 && s[rE]-- == 0)
 				s[rD]--;
@@ -452,7 +453,7 @@ ed(void)
 		}
 		if(s[rC]-- == 0)
 			s[rB]--;
-		if((s[rC] | s[rB]) != 0){
+		if(BC() != 0){
 			s[rF] |= FLAGV;
 			if((op & 0x10) != 0 && l){
 				pc -= 2;
