@@ -113,6 +113,11 @@ retro_run(void)
 		}
 		printf("    vdp registers: %x %x %x %x %x %x %x %x %x %x %x %x %x %x %x %x\n", reg[0], reg[1], reg[2], reg[3], reg[4], reg[5], reg[6], reg[7], reg[8], reg[9], reg[10], reg[11], reg[12], reg[13], reg[14], reg[15]);
 
+		// printf("vram:\n");
+		// for(int i=14000;i<17000;i++)
+		// 	printf("%x ", vram[i]);
+		// printf("\n");
+
 		if (total > 702240){
 			flush();
 			total = 0;

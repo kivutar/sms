@@ -5,8 +5,8 @@
 
 extern uint8_t *pic;
 
-uint8_t vdpcode, vdpbuf, vdpstat = 0;
-uint16_t vdpaddr;
+uint8_t vdpcode, vdpstat = 0;
+uint16_t vdpaddr, vdpbuf;
 int vdpx = 0, vdpy, vdpyy, frame, intla;
 int first = 1;
 uint16_t hctr;
@@ -363,7 +363,10 @@ vdpdata(uint8_t v)
 	first = 1;
 	vdpbuf = v;
 	switch(vdpcode){
-		case 0: case 1: case 2: vram[vdpaddr] = v; break;
+		case 0: case 1: case 2:
+			vram[vdpaddr] = v;
+			printf("vramwrite %x %x\n", vdpaddr, v);
+		break;
 		case 3: cramwrite(vdpaddr, v); break;
 	}
 	vdpaddr++;
@@ -455,7 +458,7 @@ vdpstep(void)
 		if(vdpy == yvbl){
 			vdpstat |= STATVBL | STATINT;
 			frame ^= 1;
-			// z80irq = 1;
+			z80irq = 1;
 			if((reg[MODE2] & IE0) != 0)
 				irq |= INTVBL;
 		}
