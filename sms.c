@@ -86,9 +86,31 @@ retro_load_game(const struct retro_game_info *game)
 	return true;
 }
 
+uint8_t keys[2];
+
+static const int retro_bind[] = {
+	[RETRO_DEVICE_ID_JOYPAD_UP] = 0,
+	[RETRO_DEVICE_ID_JOYPAD_DOWN] = 1<<1,
+	[RETRO_DEVICE_ID_JOYPAD_LEFT] = 1<<2,
+	[RETRO_DEVICE_ID_JOYPAD_RIGHT] = 1<<3,
+	[RETRO_DEVICE_ID_JOYPAD_A] = 1<<4,
+	[RETRO_DEVICE_ID_JOYPAD_B] = 1<<5,
+	[RETRO_DEVICE_ID_JOYPAD_START] = 1<<6,
+};
+
 void
 process_inputs()
 {
+	for(int p = 0; p < 2; p++)
+	{
+		keys[p] = 0xff;
+		for(int id = 0; id < RETRO_DEVICE_ID_JOYPAD_X; id++)
+			if(input_state_cb(p, RETRO_DEVICE_JOYPAD, 0, id))
+				keys[p] = keys[p] & ~retro_bind[id];
+	}
+
+	portDC = (keys[0] & 0x3f) + ((keys[1] << 6) & 0xc0);
+	portDD = ((keys[1] >> 2) & 0x0f) | 0xf0;
 }
 
 int counter = 0;

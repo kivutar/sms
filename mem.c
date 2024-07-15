@@ -111,6 +111,7 @@ z80write(uint16_t a, uint8_t v)
 	}
 }
 
+uint8_t portDC = 0x00;
 uint8_t portDD = 0xff;
 uint8_t port3E = 0x00;
 uint8_t port3F = 0x00;
@@ -133,10 +134,11 @@ z80in(uint8_t port)
 		else
 			return vdpstatus();
 	else
-		if ((port & 0x01) == 0x00)
-			return 0xff; // port dc
-		else
-			return (portDD & 0x3f) | (port3F & 0xc0); // port dd
+		if ((port & 0x01) == 0x00){
+			printf("  read port DC: %x\n", portDC);
+			return portDC;
+		}else
+			return (portDD & 0x3f) | (port3F & 0xc0);
 }
 
 void

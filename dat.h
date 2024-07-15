@@ -17,6 +17,9 @@ extern uint16_t vram[32768], vsram[40];
 extern uint32_t cramc[64];
 extern int vdpx, vdpy, frame, intla;
 
+extern uint8_t portDC;
+extern uint8_t portDD;
+
 enum {
 	MODE1   = 0x00,
 	MODE2   = 0x01,
