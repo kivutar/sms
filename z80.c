@@ -519,6 +519,7 @@ ed(void)
 	case 0x4d: pc = pop16(); return 14;
 	case 0x5e: intm = intm & 0xc0 | 2; return 8;
 	case 0x4f: return 9;
+	case 0x5f: return 9;
 	case 0x78:
 		s[rA] = z80in(s[rC]);
 		s[rF] &= FLAGC;
