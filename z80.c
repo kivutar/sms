@@ -536,6 +536,8 @@ ed(void)
 	case 0x41: z80out(s[rC], s[rB]); return 12;
 	case 0x51: z80out(s[rC], s[rD]); return 12;
 	case 0x61: z80out(s[rC], s[rH]); return 12;
+	case 0x49: z80out(s[rC], s[rC]); return 12;
+	case 0x59: z80out(s[rC], s[rE]); return 12;
 	case 0x69: z80out(s[rC], s[rL]); return 12;
 	case 0x79: z80out(s[rC], s[rA]); return 12;
 	case 0xb3:
