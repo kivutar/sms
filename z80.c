@@ -8,8 +8,9 @@
 #define sysfatal(fmt, ...){printf(fmt"\n", ##__VA_ARGS__); exit(EXIT_FAILURE);}
 
 uint8_t ipage, intm, z80irq;
-uint16_t ix[2] = {0xFFFF, 0xFFFF};
-uint16_t pc, curpc, sp;
+uint16_t ix[2] = {0xffff, 0xffff};
+uint16_t pc, curpc;
+uint16_t sp = 0xdff0;
 int halt;
 int inplast;
 
@@ -532,6 +533,7 @@ ed(void)
 		if ((s[rA] & 0x08) != 0) s[rF] |= FLAGX; else s[rF] &= ~FLAGX;
 		if ((s[rA] & 0x20) != 0) s[rF] |= FLAGY; else s[rF] &= ~FLAGY;
 		return 12;
+	case 0x41: z80out(s[rC], s[rB]); return 12;
 	case 0x61: z80out(s[rC], s[rH]); return 12;
 	case 0x69: z80out(s[rC], s[rL]); return 12;
 	case 0x79: z80out(s[rC], s[rA]); return 12;
