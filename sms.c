@@ -149,7 +149,8 @@ retro_run(void)
 	}
 
 	video_cb(pic, 320, 224, 320*4);
-	// audioout();
+
+	audioout();
 	doflush = 0;
 	total = 0;
 }
@@ -158,6 +159,14 @@ void
 flush(void)
 {
 	doflush = 1;
+}
+
+static uint16_t samples[736 * 2 * 2] = {0};
+
+void
+audioout(void)
+{
+	audio_cb(samples, 736);
 }
 
 void

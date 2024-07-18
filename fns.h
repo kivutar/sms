@@ -8,6 +8,7 @@ void z80write(uint16_t, uint8_t);
 uint8_t z80in(uint8_t);
 void z80out(uint8_t, uint8_t);
 void flush(void);
+void audioout(void);
 void vdpmode(void);
 void vdpctrl(uint8_t);
 void vdpdata(uint8_t);
