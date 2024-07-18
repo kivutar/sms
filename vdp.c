@@ -6,7 +6,8 @@
 extern uint8_t *pic;
 
 uint8_t vdpcode, vdpstat = 0;
-uint16_t vdpaddr, vdpbuf;
+uint16_t vdpaddr;
+uint8_t vdpbuf;
 int vdpx = 0, vdpy, vdpyy, frame, intla;
 int first = 1;
 uint16_t hctr;
@@ -198,7 +199,7 @@ static void
 planes(void)
 {
 	int i, w;
-	uint16_t v;
+	uint8_t v;
 
 	if((reg[MODE3] & 4) != 0 && ++snx == 16){
 		snx = 0;
@@ -223,115 +224,86 @@ static struct sprite {
 	uint32_t c[4];
 } spr[21], *lsp;
 
+int sprlst[64] = {-1};
+
 static void
 spritesinit(void)
 {
-	// printf("spritesinit\n");
-	uint16_t t, *p, dy, c;
-	uint32_t v;
-	int i, ns, np, nt;
-	struct sprite *q;
+	printf("spritesinit\n");
 
-	t = (reg[SPRTAB] << 8 & 0x7f00);
-	p = vram + t;
-	q = spr;
-	ns = (reg[MODE4] & WIDE) != 0 ? 20 : 16;
-	np = 0;
-	nt = 0;
-	do{
-		if(intla){
-			q->y = (p[0] & 0x3ff) - 256;
-			q->h = (p[1] >> 8 & 3) + 1 << 4;
-			dy = vdpyy - q->y;
-		}else{
-			q->y = (p[0] & 0x3ff) - 128;
-			q->h = (p[1] >> 8 & 3) + 1 << 3;
-			dy = vdpy - q->y;
-		}
-		if(dy >= q->h)
-			continue;
-		q->t = p[2];
-		if((q->t & 0x1000) != 0)
-			dy = q->h + ~dy;
-		q->x = (p[3] & 0x3ff) - 128;
-		if(q->x == 0xff80)
+	uint16_t t1 = (reg[SPRTAB] << 7 & 0x3f00);
+	uint16_t t2 = t1 + 0x80;
+
+	int bufidx = 0;
+	for(int i = bufidx; i < 8; i++)
+		sprlst[i] = -1;
+
+	for (int i = 0; i < 64; i++) {
+		int spridx = t1 + i;
+
+		if (vram[spridx] == 0xd0)
 			break;
-		q->w = (p[1] >> 10 & 3) + 1 << 3;
-		c = ((q->t & 0x7ff) << 4+intla) + (dy << 1);
-		for(i = 0; i < q->w >> 3 && np < xdisp; i++){
-			v = vram[c] << 16 | vram[(uint16_t)(c+1)];
-			c += q->h << 1;
-			if((q->t & 0x800) != 0)
-				q->c[(q->w >> 3) - 1 - i] = v;
-			else
-				q->c[i] = v;
-			np += 8;
+
+		int y = vram[spridx] + 1;
+		int h = (reg[1] & 1 << 1) != 0 ? 16 : 8;
+
+		if(vdpy >= y && vdpy <= y+h && y > 1){
+			if(bufidx >= 8){
+				if (vdpy < 192)
+					vdpstat |= STATOVR;
+				break;
+			}
+
+			sprlst[bufidx] = i;
+			bufidx++;
 		}
-		if((uint16_t)-q->x < q->w){
-			i = -(int16_t)q->x;
-			if((q->t & 0x800) != 0)
-				q->c[i>>3] >>= (i & 7) << 2;
-			else
-				q->c[i>>3] <<= (i & 7) << 2;
-		}
-		if(++q == spr + ns || np >= xdisp){
-			vdpstat |= STATOVR;
-			break;
-		}
-	}while(p = vram + (uint16_t)(t + ((p[1] & 0x7f) << 2)), p - vram != t && ++nt < 80);
-	lsp = q;
+	}
 }
 
 static void
 sprites(void)
 {
-	struct sprite *p;
-	uint16_t dx;
-	int v, col, set;
-	uint32_t *c;
+	if (vdpy > 192) return;
 
-	set = 0;
-	col = 0;
-	for(p = spr; p < lsp; p++){
-		printf("p->x: %d, p->y: %d\n", p->x, p->y);
-		dx = vdpx - p->x;
-		if(dx >= p->w)
-			continue;
-		c = p->c + (dx >> 3);
-		if((p->t & 0x800) != 0){
-			v = *c & 15;
-			*c >>= 4;
-		}else{
-			v = *c >> 28;
-			*c <<= 4;
+	uint16_t t1 = (reg[SPRTAB] << 7 & 0x3f00);
+	uint16_t t2 = t1 + 0x80;
+	uint16_t t3 = (reg[6] << 11) & 0x2000;
+
+	for (int i = 7; i >= 0; i--) {
+		if (sprlst[i] < 0) continue;
+
+		int spr = sprlst[i];
+		int spridx = t1 + spr;
+		int y = vram[spridx] + 1;
+		uint16_t info = t2 + (spr << 1);
+		int x = vram[info];
+		int h = (reg[1] & 1 << 1) != 0 ? 16 : 8;
+
+		if (x >= 256) continue;
+
+		int t = vram[info + 1];
+		t &= (reg[1] & 1 << 1) != 0 ? 0xfe : 0xff;
+		int taddr = t3 + (t << 5) +  ((vdpy - y) << 2);
+
+		for (int xx = 0; xx < 8; xx++){
+			if (x+xx > 256) continue;
+
+			int c = ((vram[taddr] >> (7 - xx)) & 0x01) +
+					(((vram[taddr + 1] >> (7 - xx)) & 0x01) << 1) +
+					(((vram[taddr + 2] >> (7 - xx)) & 0x01) << 2) +
+					(((vram[taddr + 3] >> (7 - xx)) & 0x01) << 3);
+
+			if (c == 0) continue;
+
+			pixeldraw(x+xx, vdpy, cramc[c + 16]);
 		}
-		if(v != 0)
-			if(set != 0)
-				vdpstat |= STATCOLL;
-			else{
-				set = 1 | p->t & 0x8000;
-				col = p->t >> 9 & 48 | v;
-			}
 	}
-	if(set)
-		if((reg[MODE4] & SHI) != 0)
-			if((col & 0xfe) == 0x3e)
-				lum = col & 1;
-			else{
-				pixel(col, set >> 13 | 2);
-				if((col & 0xf) == 0xe)
-					lum = 1;
-				else
-					lum |= set >> 15;
-			}
-		else
-			pixel(col, set >> 13 | 2);
 }
 
 void
 vdpctrl(uint8_t v)
 {
-	printf("    vdp write to control port %x\n", v);
+	printf("	vdp write to control port %x\n", v);
 
 	if(first){
 		printf("first\n");
@@ -359,7 +331,7 @@ vdpctrl(uint8_t v)
 void
 vdpdata(uint8_t v)
 {
-	printf("    vdp (code: %x) write to data port %x\n", vdpcode, v);
+	printf("	vdp (code: %x) write to data port %x\n", vdpcode, v);
 	first = 1;
 	vdpbuf = v;
 	switch(vdpcode){
@@ -376,38 +348,38 @@ vdpdata(uint8_t v)
 uint8_t
 vdpdataport(void)
 {
-    uint8_t v = vdpbuf;
-    vdpbuf = vram[vdpaddr];
-    vdpaddr++;
-    vdpaddr &= 0x3fff;
-    printf("    vdp read from data port %x\n", v);
-    first = 1;
-    return v;
+	uint8_t v = vdpbuf;
+	vdpbuf = vram[vdpaddr];
+	vdpaddr++;
+	vdpaddr &= 0x3fff;
+	printf("	vdp read from data port %x\n", v);
+	first = 1;
+	return v;
 }
 
 uint8_t
 vdpstatus(void)
 {
-    uint8_t v = vdpstat | 0x1f;
-    vdpstat = 0;
-    z80irq = 0;
-    printf("    vdp read status flags %x\n", v);
-    first = 1;
-    return v;
+	uint8_t v = vdpstat | 0x1f;
+	vdpstat = 0;
+	z80irq = 0;
+	printf("	vdp read status flags %x\n", v);
+	first = 1;
+	return v;
 }
 
 uint8_t
 vdphcounter(void)
 {
-    printf("    vdp read hcounter %x\n", vdpx);
-    return vdpx;
+	printf("	vdp read hcounter %x\n", vdpx);
+	return vdpx;
 }
 
 uint8_t
 vdpvcounter(void)
 {
-    printf("    vdp read vcounter %x\n", vdpy);
-    return vdpy;
+	printf("	vdp read vcounter %x\n", vdpy);
+	return vdpy;
 }
 
 void

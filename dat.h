@@ -13,7 +13,8 @@ extern uint8_t *prg;
 extern uint8_t *rom;
 extern uint8_t *mem;
 
-extern uint16_t vram[32768], vsram[40];
+extern uint8_t vram[32768], vsram[40];
+extern uint8_t cram[64];
 extern uint32_t cramc[64];
 extern int vdpx, vdpy, frame, intla;
 

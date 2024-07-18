@@ -7,10 +7,9 @@
 #define sysfatal(fmt, ...){printf(fmt"\n", ##__VA_ARGS__); exit(EXIT_FAILURE);}
 
 uint16_t ram[32768] = {0};
-uint16_t vram[32768];
-uint16_t cram[64], vsram[40];
+uint8_t vram[32768];
+uint8_t cram[64], vsram[40];
 uint32_t cramc[64];
-uint8_t zram[8192];
 uint8_t reg[16] = {
     0x36, 0x80, 0xff, 0xff,
     0xff, 0xff, 0xfb, 0x00,
@@ -30,10 +29,15 @@ int slotaddr[3] = {0, 0, 0};
 int nbank = 16;
 
 void
-cramwrite(uint16_t a, uint16_t v)
+cramwrite(uint16_t a, uint8_t v)
 {
 	cram[a & 0x1f] = v;
-	cramc[a & 0x1f] = v << 12 & 0xe00000 | v << 8 & 0xe000 | v << 4 & 0xe0;
+
+	uint8_t r = (v & 0x03) << 6;
+	uint8_t g = (v & 0x0c) << 4;
+	uint8_t b = (v & 0x30) << 2;
+
+	cramc[a & 0x1f] = (b << 16) | (g << 8) | r;
 
 	printf("cramwrite %x %x\n", a, v);
 	for(int i=0;i<64;i++)
