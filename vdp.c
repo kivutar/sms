@@ -43,12 +43,6 @@ pixeldraw(int x, int y, int v)
 }
 
 static void
-plane(int n, int vis)
-{
-
-}
-
-static void
 planes(void)
 {
 	uint16_t screenmap = (reg[PANT] & 0x0e) << 10;
@@ -57,23 +51,24 @@ planes(void)
 
 	int y = vdpy >> 3;
 
-	for(int x = 0; x < 32; x++){
-		uint16_t taddr = screenmap + (((y << 5) + x) << 1);
+	for(int x = 0; x < 256; x++){
+		int tx = x >> 3;
+		int ty = y >> 3;
+		int txoff = x & 7;
+		int tyoff = vdpy & 7;
+		uint16_t taddr = screenmap + (((y << 5) + tx) << 1);
 		int tidx = vram[taddr];
-		int tdataaddr = tidx << 5;
+		int data = (tidx << 5) + (tyoff << 2);
+		int xx = 7 - txoff;
 
-		for (int xx = 0; xx < 8; xx++){
-			if (x*8+xx > 256) continue;
+		int c = ((vram[data] >> xx) & 1) +
+				(((vram[data + 1] >> xx) & 1) << 1) +
+				(((vram[data + 2] >> xx) & 1) << 2) +
+				(((vram[data + 3] >> xx) & 1) << 3);
 
-			int c = ((vram[tdataaddr] >> xx) & 0x01) +
-					(((vram[tdataaddr + 1] >> xx) & 0x01) << 1) +
-					(((vram[tdataaddr + 2] >> xx) & 0x01) << 2) +
-					(((vram[tdataaddr + 3] >> xx) & 0x01) << 3);
+		if (c == 0) continue;
 
-			if (c == 0) continue;
-
-			pixeldraw(x*8+xx, vdpy, cramc[c + 16]);
-		}
+		pixeldraw(x, vdpy, cramc[c + 16]);
 	}
 }
 
