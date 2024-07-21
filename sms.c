@@ -119,13 +119,13 @@ int total = 0;
 void
 retro_run(void)
 {
-	printf("%d ================================\n", counter++);
+	// printf("%d ================================\n", counter++);
 	input_poll_cb();
 	process_inputs();
 
 	while(!doflush){
 		t = z80step();
-		printf("cycles: %d\n", t);
+		// printf("cycles: %d\n", t);
 		vdpclock -= t * Z80DIV;
 		total += t;
 
@@ -133,7 +133,7 @@ retro_run(void)
 			vdpstep();
 			vdpclock += 8;
 		}
-		printf("    vdp registers: %x %x %x %x %x %x %x %x %x %x %x %x %x %x %x %x\n", reg[0], reg[1], reg[2], reg[3], reg[4], reg[5], reg[6], reg[7], reg[8], reg[9], reg[10], reg[11], reg[12], reg[13], reg[14], reg[15]);
+		// printf("    vdp registers: %x %x %x %x %x %x %x %x %x %x %x %x %x %x %x %x\n", reg[0], reg[1], reg[2], reg[3], reg[4], reg[5], reg[6], reg[7], reg[8], reg[9], reg[10], reg[11], reg[12], reg[13], reg[14], reg[15]);
 
 		// printf("vram:\n");
 		// for(int i=14000;i<17000;i++)

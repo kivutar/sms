@@ -415,7 +415,7 @@ ed(void)
 	uint16_t a, n;
 
 	op = fetch8();
-	printf("ed %.2x\n", op);
+	// printf("ed %.2x\n", op);
 	switch(op){
 	case 0xa0: case 0xa1: case 0xa8: case 0xa9:
 	case 0xb0: case 0xb1: case 0xb8: case 0xb9:
@@ -688,9 +688,9 @@ z80step(void)
 		}
 	}
 	curpc = pc;
-	printf("%x AF %.2x%.2x BC %.2x%.2x DE %.2x%.2x HL %.2x%.2x IX %.4x IY %.4x\n", curpc, s[rA], s[rF], s[rB], s[rC], s[rD], s[rE], s[rH], s[rL], ix[0], ix[1]);
+	// printf("%x AF %.2x%.2x BC %.2x%.2x DE %.2x%.2x HL %.2x%.2x IX %.4x IY %.4x\n", curpc, s[rA], s[rF], s[rB], s[rC], s[rD], s[rE], s[rH], s[rL], ix[0], ix[1]);
 	op = fetch8();
-	printf("op: %x\n", op);
+	// printf("op: %x\n", op);
 	switch(op >> 6){
 	case 1: return move(op >> 3 & 7, op & 7);
 	case 2: return alu(op >> 3 & 7, op & 7);

@@ -12,7 +12,7 @@ int vdpx = 0, vdpy, vdpyy, frame, intla;
 int first = 1;
 uint16_t hctr;
 static int xmax, xdisp;
-static int sx, snx, col, pri, lum;
+static int sx, snx, col, pri;
 enum { ymax = 262, yvbl = 234 };
 
 void
@@ -29,7 +29,7 @@ vdpmode(void)
 }
 
 static void
-pixeldraw(int x, int y, int v)
+pixeldraw(int x, int y, uint32_t v)
 {
 	uint32_t *p;
 	union { uint32_t l; uint8_t b[4]; } u;
@@ -49,14 +49,13 @@ planes(void)
 
 	if (vdpy > 192) return;
 
-	int y = vdpy >> 3;
+	int ty = vdpy >> 3;
+	int tyoff = vdpy & 7;
 
 	for(int x = 0; x < 256; x++){
 		int tx = x >> 3;
-		int ty = y >> 3;
 		int txoff = x & 7;
-		int tyoff = vdpy & 7;
-		uint16_t taddr = screenmap + (((y << 5) + tx) << 1);
+		uint16_t taddr = screenmap + (((ty << 5) + tx) << 1);
 		int tidx = vram[taddr];
 		int data = (tidx << 5) + (tyoff << 2);
 		int xx = 7 - txoff;
@@ -77,8 +76,6 @@ int sprlst[64] = {-1};
 static void
 spritesinit(void)
 {
-	printf("spritesinit\n");
-
 	uint16_t t1 = (reg[SPRTAB] << 7 & 0x3f00);
 	uint16_t t2 = t1 + 0x80;
 
@@ -151,10 +148,10 @@ sprites(void)
 void
 vdpctrl(uint8_t v)
 {
-	printf("	vdp write to control port %x\n", v);
+	// printf("	vdp write to control port %x\n", v);
 
 	if(first){
-		printf("first\n");
+		// printf("first\n");
 		first = 0;
 		vdpaddr = (vdpaddr & 0xFF00) | v;
 		return;
@@ -163,7 +160,7 @@ vdpctrl(uint8_t v)
 	vdpcode = (v >> 6) & 0x03;
 	vdpaddr = (vdpaddr & 0x00ff) | ((v & 0x3f) << 8);
 
-	printf("vdp code and address %x %x\n", vdpcode, vdpaddr);
+	// printf("vdp code and address %x %x\n", vdpcode, vdpaddr);
 	first = 1;
 
 	switch(vdpcode){
@@ -179,13 +176,13 @@ vdpctrl(uint8_t v)
 void
 vdpdata(uint8_t v)
 {
-	printf("	vdp (code: %x) write to data port %x\n", vdpcode, v);
+	// printf("	vdp (code: %x) write to data port %x\n", vdpcode, v);
 	first = 1;
 	vdpbuf = v;
 	switch(vdpcode){
 		case 0: case 1: case 2:
 			vram[vdpaddr] = v;
-			printf("vramwrite %x %x\n", vdpaddr, v);
+			// printf("vramwrite %x %x\n", vdpaddr, v);
 		break;
 		case 3: cramwrite(vdpaddr, v); break;
 	}
@@ -200,7 +197,7 @@ vdpdataport(void)
 	vdpbuf = vram[vdpaddr];
 	vdpaddr++;
 	vdpaddr &= 0x3fff;
-	printf("	vdp read from data port %x\n", v);
+	// printf("	vdp read from data port %x\n", v);
 	first = 1;
 	return v;
 }
@@ -211,7 +208,7 @@ vdpstatus(void)
 	uint8_t v = vdpstat | 0x1f;
 	vdpstat = 0;
 	z80irq = 0;
-	printf("	vdp read status flags %x\n", v);
+	// printf("	vdp read status flags %x\n", v);
 	first = 1;
 	return v;
 }
@@ -219,14 +216,14 @@ vdpstatus(void)
 uint8_t
 vdphcounter(void)
 {
-	printf("	vdp read hcounter %x\n", vdpx);
+	// printf("	vdp read hcounter %x\n", vdpx);
 	return vdpx;
 }
 
 uint8_t
 vdpvcounter(void)
 {
-	printf("	vdp read vcounter %x\n", vdpy);
+	// printf("	vdp read vcounter %x\n", vdpy);
 	return vdpy;
 }
 
@@ -242,7 +239,6 @@ vdpstep(void)
 		if(vdpx < xdisp){
 			col = reg[BGCOL] & 0x0f + 16;
 			pri = 0;
-			lum = 0;
 			planes();
 			sprites();
 			pixeldraw(vdpx, vdpy, 0);

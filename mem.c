@@ -39,16 +39,16 @@ cramwrite(uint16_t a, uint8_t v)
 
 	cramc[a & 0x1f] = (b << 16) | (g << 8) | r;
 
-	printf("cramwrite %x %x\n", a, v);
-	for(int i=0;i<64;i++)
-		printf("%x ", cram[i]);
-	printf("\n");
+	// printf("cramwrite %x %x\n", a, v);
+	// for(int i=0;i<64;i++)
+	// 	printf("%x ", cram[i]);
+	// printf("\n");
 }
 
 uint8_t
 z80read(uint16_t a)
 {
-	printf("z80read %x\n", a);
+	// printf("z80read %x\n", a);
 	uint16_t v;
 
 	if (a < 0x400)
@@ -61,8 +61,8 @@ z80read(uint16_t a)
 		if (ram_enabled)
 			return ram[(a - 0x8000) + ram_bank];
 		else{
-			printf("== page 2 %x %x %x\n", a, (a - 0x8000) + slotaddr[2], slotaddr[2]);
-			printf("== rom[(a - 0x8000) + slotaddr[2]] %x\n", rom[(a - 0x8000) + slotaddr[2]]);
+			// printf("== page 2 %x %x %x\n", a, (a - 0x8000) + slotaddr[2], slotaddr[2]);
+			// printf("== rom[(a - 0x8000) + slotaddr[2]] %x\n", rom[(a - 0x8000) + slotaddr[2]]);
 			return rom[(a - 0x8000) + slotaddr[2]];
 		}
 	}else
@@ -72,7 +72,7 @@ z80read(uint16_t a)
 void
 z80write(uint16_t a, uint8_t v)
 {
-	printf("z80write %x %x\n", a, v);
+	// printf("z80write %x %x\n", a, v);
 	if (a < 0x8000)
 		printf("wrong z80write page 0 or 1 %x %x\n", a, v);
 	else if (a < 0xC000)
@@ -95,20 +95,20 @@ z80write(uint16_t a, uint8_t v)
 		{
 			case 0xFFFC:
 				ram_bank = (v & (1 << 2)) != 0 ? 0x4000 : 0;
-				printf("RAM bank %x\n", ram_bank);
+				// printf("RAM bank %x\n", ram_bank);
 				ram_enabled = (v & (1 << 3)) != 0 ? 1 : 0;
-				printf("RAM enabled %x\n", ram_enabled);
+				// printf("RAM enabled %x\n", ram_enabled);
 				break;
 			case 0xFFFD:
-				printf("Switch mapper slot 0 to %d\n", (v & nbank-1));
+				// printf("Switch mapper slot 0 to %d\n", (v & nbank-1));
 				slotaddr[0] = (v & nbank-1) * 0x4000;
 				break;
 			case 0xFFFE:
-				printf("Switch mapper slot 1 to %d\n", (v & nbank-1));
+				// printf("Switch mapper slot 1 to %d\n", (v & nbank-1));
 				slotaddr[1] = (v & nbank-1) * 0x4000;
 				break;
 			case 0xFFFF:
-				printf("Switch mapper slot 2 to %d\n", (v & nbank-1));
+				// printf("Switch mapper slot 2 to %d\n", (v & nbank-1));
 				slotaddr[2] = (v & nbank-1) * 0x4000;
 				break;
 		}
@@ -124,7 +124,7 @@ uint8_t port3FHC = 0x00;
 uint8_t
 z80in(uint8_t port)
 {
-	printf("z80in %x\n", port);
+	// printf("z80in %x\n", port);
 	if (port < 0x40)
 		return 0xff;
 	else if (port >= 0x40 && port < 0x80)
@@ -138,28 +138,27 @@ z80in(uint8_t port)
 		else
 			return vdpstatus();
 	else
-		if ((port & 0x01) == 0x00){
-			printf("  read port DC: %x\n", portDC);
+		if ((port & 0x01) == 0x00)
 			return portDC;
-		}else
+		else
 			return (portDD & 0x3f) | (port3F & 0xc0);
 }
 
 void
 z80out(uint8_t port, uint8_t v)
 {
-	printf("z80out %x %x\n", port, v);
+	// printf("z80out %x %x\n", port, v);
 	if (port < 0x40){
-		printf("  write to control register\n");
+		// printf("  write to control register\n");
 		if ((port & 0x01) == 0x00)
 			port3E = v;
 		else{
 			port3FHC = v & 0x05;
 			port3F = ((v & 0x80) | (v & 0x20) << 1) & 0xC0;
 		}
-	}else if ((port >= 0x40) && (port < 0x80))
-		printf("  write to SN76489 PSG\n");
-	else if ((port >= 0x80) && (port < 0xC0)){
+	}else if ((port >= 0x40) && (port < 0x80)){
+		// printf("  write to SN76489 PSG\n");
+	}else if ((port >= 0x80) && (port < 0xC0)){
 		// printf("  write to VDP\n");
 		if ((port & 0x01) == 0x00)
 			vdpdata(v);
