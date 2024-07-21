@@ -55,7 +55,7 @@ planes(void)
 	int hflip = (info & 1 << 1) != 0;
 	int vflip = (info & 1 << 2) != 0;
 
-	int data = (tidx << 5) + (tyoff << 2);
+	int data = (tidx << 5) + ((vflip ? 7 - tyoff : tyoff) << 2);
 	int xx = 7 - txoff;
 	if (hflip) xx = txoff;
 
