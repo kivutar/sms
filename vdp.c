@@ -45,14 +45,19 @@ planes(void)
 	int ty = vdpy >> 3;
 	int tyoff = vdpy & 7;
 
-	//for(int x = 0; x < 256; x++){
 	int tx = vdpx >> 3;
 	int txoff = vdpx & 7;
 
 	uint16_t taddr = screenmap + (((ty << 5) + tx) << 1);
 	int tidx = vram[taddr];
+	int info = vram[taddr + 1];
+
+	int hflip = (info & 1 << 1) != 0;
+	int vflip = (info & 1 << 2) != 0;
+
 	int data = (tidx << 5) + (tyoff << 2);
 	int xx = 7 - txoff;
+	if (hflip) xx = txoff;
 
 	int c = ((vram[data] >> xx) & 1) +
 			(((vram[data + 1] >> xx) & 1) << 1) +
@@ -60,7 +65,6 @@ planes(void)
 			(((vram[data + 3] >> xx) & 1) << 3);
 
 	if(c > 0) pixeldraw(vdpx, vdpy, cramc[c + 16]);
-	//}
 }
 
 int sprlst[64] = {-1};
