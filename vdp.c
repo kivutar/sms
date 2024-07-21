@@ -51,15 +51,31 @@ plane(int n, int vis)
 static void
 planes(void)
 {
+	uint16_t screenmap = (reg[PANT] & 0x0e) << 10;
 
+	if (vdpy > 192) return;
+
+	int y = vdpy >> 3;
+
+	for(int x = 0; x < 32; x++){
+		uint16_t taddr = screenmap + (((y << 5) + x) << 1);
+		int tidx = vram[taddr];
+		int tdataaddr = tidx << 5;
+
+		for (int xx = 0; xx < 8; xx++){
+			if (x*8+xx > 256) continue;
+
+			int c = ((vram[tdataaddr] >> xx) & 0x01) +
+					(((vram[tdataaddr + 1] >> xx) & 0x01) << 1) +
+					(((vram[tdataaddr + 2] >> xx) & 0x01) << 2) +
+					(((vram[tdataaddr + 3] >> xx) & 0x01) << 3);
+
+			if (c == 0) continue;
+
+			pixeldraw(x*8+xx, vdpy, cramc[c + 16]);
+		}
+	}
 }
-
-static struct sprite {
-	uint16_t y, x;
-	uint8_t w, h;
-	uint16_t t;
-	uint32_t c[4];
-} spr[21], *lsp;
 
 int sprlst[64] = {-1};
 
