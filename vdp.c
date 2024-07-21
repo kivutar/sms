@@ -54,6 +54,7 @@ planes(void)
 
 	int hflip = (info & 1 << 1) != 0;
 	int vflip = (info & 1 << 2) != 0;
+	int paloff = (info & 1 << 3) != 0 ? 0x20 : 0x00;
 
 	int data = (tidx << 5) + ((vflip ? 7 - tyoff : tyoff) << 2);
 	int xx = 7 - txoff;
@@ -64,7 +65,7 @@ planes(void)
 			(((vram[data + 2] >> xx) & 1) << 2) +
 			(((vram[data + 3] >> xx) & 1) << 3);
 
-	if(c > 0) pixeldraw(vdpx, vdpy, cramc[c + 16]);
+	if(c > 0) pixeldraw(vdpx, vdpy, cramc[c + paloff]);
 }
 
 int sprlst[64] = {-1};
@@ -227,7 +228,7 @@ vdpstep(void)
 		if(vdpx < xdisp){
 			col = reg[BGCOL] & 0x0f + 16;
 			pri = 0;
-			pixeldraw(vdpx, vdpy, 0);
+			pixeldraw(vdpx, vdpy, col);
 			planes();
 			sprites();
 		}else
