@@ -18,13 +18,8 @@ enum { ymax = 262, yvbl = 234 };
 void
 vdpmode(void)
 {
-	if((reg[MODE4] & WIDE) != 0){
-		xmax = 406;
-		xdisp = 320;
-	}else{
-		xdisp = 256;
-		xmax = 342;
-	}
+	xmax = 320;
+	xdisp = 256;
 	intla = (reg[MODE4] & 6) == 6;
 }
 
@@ -47,28 +42,25 @@ planes(void)
 {
 	uint16_t screenmap = (reg[PANT] & 0x0e) << 10;
 
-	if (vdpy > 192) return;
-
 	int ty = vdpy >> 3;
 	int tyoff = vdpy & 7;
 
-	for(int x = 0; x < 256; x++){
-		int tx = x >> 3;
-		int txoff = x & 7;
-		uint16_t taddr = screenmap + (((ty << 5) + tx) << 1);
-		int tidx = vram[taddr];
-		int data = (tidx << 5) + (tyoff << 2);
-		int xx = 7 - txoff;
+	//for(int x = 0; x < 256; x++){
+	int tx = vdpx >> 3;
+	int txoff = vdpx & 7;
 
-		int c = ((vram[data] >> xx) & 1) +
-				(((vram[data + 1] >> xx) & 1) << 1) +
-				(((vram[data + 2] >> xx) & 1) << 2) +
-				(((vram[data + 3] >> xx) & 1) << 3);
+	uint16_t taddr = screenmap + (((ty << 5) + tx) << 1);
+	int tidx = vram[taddr];
+	int data = (tidx << 5) + (tyoff << 2);
+	int xx = 7 - txoff;
 
-		if (c == 0) continue;
+	int c = ((vram[data] >> xx) & 1) +
+			(((vram[data + 1] >> xx) & 1) << 1) +
+			(((vram[data + 2] >> xx) & 1) << 2) +
+			(((vram[data + 3] >> xx) & 1) << 3);
 
-		pixeldraw(x, vdpy, cramc[c + 16]);
-	}
+	if(c > 0) pixeldraw(vdpx, vdpy, cramc[c + 16]);
+	//}
 }
 
 int sprlst[64] = {-1};
@@ -83,10 +75,10 @@ spritesinit(void)
 	for(int i = bufidx; i < 8; i++)
 		sprlst[i] = -1;
 
-	for (int i = 0; i < 64; i++) {
+	for(int i = 0; i < 64; i++){
 		int spridx = t1 + i;
 
-		if (vram[spridx] == 0xd0)
+		if(vram[spridx] == 0xd0)
 			break;
 
 		int y = vram[spridx] + 1;
@@ -94,7 +86,7 @@ spritesinit(void)
 
 		if(vdpy >= y && vdpy < y+h && y > 1){
 			if(bufidx >= 8){
-				if (vdpy < 192)
+				if(vdpy < 192)
 					vdpstat |= STATOVR;
 				break;
 			}
@@ -108,14 +100,12 @@ spritesinit(void)
 static void
 sprites(void)
 {
-	if (vdpy > 192) return;
-
 	uint16_t t1 = (reg[SPRTAB] << 7 & 0x3f00);
 	uint16_t t2 = t1 + 0x80;
 	uint16_t t3 = (reg[6] << 11) & 0x2000;
 
-	for (int i = 7; i >= 0; i--) {
-		if (sprlst[i] < 0) continue;
+	for(int i = 7; i >= 0; i--){
+		if(sprlst[i] < 0) continue;
 
 		int spr = sprlst[i];
 		int spridx = t1 + spr;
@@ -124,23 +114,17 @@ sprites(void)
 		int x = vram[info];
 		int h = (reg[1] & 1 << 1) != 0 ? 16 : 8;
 
-		if (x >= 256) continue;
-
 		int t = vram[info + 1];
 		t &= (reg[1] & 1 << 1) != 0 ? 0xfe : 0xff;
 		int taddr = t3 + (t << 5) +  ((vdpy - y) << 2);
 
-		for (int xx = 0; xx < 8; xx++){
-			if (x+xx > 256) continue;
-
+		for(int xx = 0; xx < 8; xx++){
 			int c = ((vram[taddr] >> (7 - xx)) & 0x01) +
 					(((vram[taddr + 1] >> (7 - xx)) & 0x01) << 1) +
 					(((vram[taddr + 2] >> (7 - xx)) & 0x01) << 2) +
 					(((vram[taddr + 3] >> (7 - xx)) & 0x01) << 3);
 
-			if (c == 0) continue;
-
-			pixeldraw(x+xx, vdpy, cramc[c + 16]);
+			if(c > 0) pixeldraw(x+xx, vdpy, cramc[c + 16]);
 		}
 	}
 }
@@ -153,7 +137,7 @@ vdpctrl(uint8_t v)
 	if(first){
 		// printf("first\n");
 		first = 0;
-		vdpaddr = (vdpaddr & 0xFF00) | v;
+		vdpaddr = (vdpaddr & 0xff00) | v;
 		return;
 	}
 
@@ -239,9 +223,9 @@ vdpstep(void)
 		if(vdpx < xdisp){
 			col = reg[BGCOL] & 0x0f + 16;
 			pri = 0;
+			pixeldraw(vdpx, vdpy, 0);
 			planes();
 			sprites();
-			pixeldraw(vdpx, vdpy, 0);
 		}else
 			pixeldraw(vdpx, vdpy, 0xcccccc);
 	if(++vdpx >= xmax){
@@ -256,7 +240,7 @@ vdpstep(void)
 		}
 		if(intla)
 			vdpyy = vdpy << 1 | frame;
-		if(vdpy == 0 || vdpy >= 193)
+		if(vdpy == 0 || vdpy > 192)
 			hctr = reg[HORCTR];
 		else
 			if(hctr-- == 0){

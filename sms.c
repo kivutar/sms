@@ -148,7 +148,7 @@ retro_run(void)
 		}
 	}
 
-	video_cb(pic, 320, 224, 320*4);
+	video_cb(pic, 256, 192, 320*4);
 
 	audioout();
 	doflush = 0;
