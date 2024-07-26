@@ -3,7 +3,6 @@
 extern uint32_t irq;
 
 extern uint8_t reg[16];
-extern uint8_t dma;
 
 extern uint8_t z80bus, z80irq;
 extern uint16_t pc, curpc;
@@ -29,29 +28,13 @@ enum {
 	PBNT    = 0x04,
 	SPRTAB  = 0x05,
 	BGCOL   = 0x07,
+	HORSCR  = 0x08,
+	VERSCR  = 0x09,
 	HORCTR  = 0x0a,
-	MODE3   = 0x0b,
-	MODE4   = 0x0c,
-	HORSCR  = 0x0d,
-	AUTOINC = 0x0f,
-	PLSIZ   = 0x10,
-	WINH    = 0x11,
-	WINV    = 0x12,
-	DMACL   = 0x13,
-	DMACH   = 0x14,
-	DMASRC0 = 0x15,
-	DMASRC1 = 0x16,
-	DMASRC2 = 0x17,
 
 	IE0     = 0x20,
 	IE1     = 0x10,
-	DMAEN   = 0x10,
-	SHI     = 0x08,
 
-	WIDE    = 0x01,
-
-	STATDMA = 0x02,
-	STATHBL = 0x04,
 	STATVBL = 0x08,
 	STATFR  = 0x10,
 	STATCOLL= 0x20,

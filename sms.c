@@ -17,20 +17,15 @@ uint32_t r[16];
 extern uint16_t pc, curpc, sp;
 uint32_t asp, irq, stop;
 int doflush = 0;
-// uint8_t header[0x7fff];
-// uint8_t *prg = NULL;
 uint8_t *rom = NULL;
 uint8_t *mem = NULL;
 uint8_t *pic = NULL;
-
 int vdpclock = 0;
+uint8_t keys[2];
 
 void
 loadrom(const uint8_t *data)
 {
-	// memcpy(header, data, sizeof(header));
-	// prg = malloc(0xC000);
-	// memcpy(prg, data+sizeof(header), 0xC000);
 	pic = malloc(320 * 224 * 4);
 	rom = malloc(0x40000);
 	memcpy(rom, data, 0x40000);
@@ -86,15 +81,13 @@ retro_load_game(const struct retro_game_info *game)
 	return true;
 }
 
-uint8_t keys[2];
-
 static const int retro_bind[] = {
-	[RETRO_DEVICE_ID_JOYPAD_UP] = 0,
-	[RETRO_DEVICE_ID_JOYPAD_DOWN] = 1<<1,
-	[RETRO_DEVICE_ID_JOYPAD_LEFT] = 1<<2,
+	[RETRO_DEVICE_ID_JOYPAD_UP]    = 0,
+	[RETRO_DEVICE_ID_JOYPAD_DOWN]  = 1<<1,
+	[RETRO_DEVICE_ID_JOYPAD_LEFT]  = 1<<2,
 	[RETRO_DEVICE_ID_JOYPAD_RIGHT] = 1<<3,
-	[RETRO_DEVICE_ID_JOYPAD_A] = 1<<4,
-	[RETRO_DEVICE_ID_JOYPAD_B] = 1<<5,
+	[RETRO_DEVICE_ID_JOYPAD_A]     = 1<<4,
+	[RETRO_DEVICE_ID_JOYPAD_B]     = 1<<5,
 	[RETRO_DEVICE_ID_JOYPAD_START] = 1<<6,
 };
 

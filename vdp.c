@@ -12,7 +12,6 @@ int vdpx = 0, vdpy, vdpyy, frame, intla;
 int first = 1;
 uint16_t hctr;
 static int xmax, xdisp;
-static int sx, snx, col, pri;
 enum { ymax = 262, yvbl = 234 };
 
 void
@@ -20,7 +19,6 @@ vdpmode(void)
 {
 	xmax = 320;
 	xdisp = 256;
-	intla = (reg[MODE4] & 6) == 6;
 }
 
 static void
@@ -42,11 +40,14 @@ planes(void)
 {
 	uint16_t screenmap = (reg[PANT] & 0x0e) << 10;
 
-	int ty = vdpy >> 3;
-	int tyoff = vdpy & 7;
+	uint8_t y = vdpy + reg[VERSCR];
+	if (y >= 224) y -= 224;
+	int ty = y >> 3;
+	int tyoff = y & 7;
 
-	int tx = vdpx >> 3;
-	int txoff = vdpx & 7;
+	uint8_t x = vdpx - reg[HORSCR];
+	int tx = x >> 3;
+	int txoff = x & 7;
 
 	uint16_t taddr = screenmap + (((ty << 5) + tx) << 1);
 	int tidx = vram[taddr];
@@ -54,7 +55,7 @@ planes(void)
 
 	int hflip = (info & 1 << 1) != 0;
 	int vflip = (info & 1 << 2) != 0;
-	int paloff = (info & 1 << 3) != 0 ? 0x20 : 0x00;
+	int paloff = (info & 1 << 3) != 0 ? 16 : 0;
 
 	int data = (tidx << 5) + ((vflip ? 7 - tyoff : tyoff) << 2);
 	int xx = 7 - txoff;
@@ -65,7 +66,7 @@ planes(void)
 			(((vram[data + 2] >> xx) & 1) << 2) +
 			(((vram[data + 3] >> xx) & 1) << 3);
 
-	if(c > 0) pixeldraw(vdpx, vdpy, cramc[c + paloff]);
+	pixeldraw(vdpx, vdpy, cramc[c + paloff]);
 }
 
 int sprlst[64] = {-1};
@@ -226,9 +227,8 @@ vdpstep(void)
 
 	if(vdpx < 320 && vdpy < 192)
 		if(vdpx < xdisp){
-			col = reg[BGCOL] & 0x0f + 16;
-			pri = 0;
-			pixeldraw(vdpx, vdpy, col);
+			int c = (reg[BGCOL] & 0x0f) + 16;
+			pixeldraw(vdpx, vdpy, c);
 			planes();
 			sprites();
 		}else

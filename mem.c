@@ -18,7 +18,6 @@ uint8_t reg[16] = {
 };
 uint8_t ctl[15];
 
-uint8_t dma;
 uint8_t vdplatch;
 
 uint8_t z80bus = 0;

@@ -495,12 +495,12 @@ ed(void)
 		v = z80read(HL());
 		z80write(HL(), v >> 4 | s[rA] << 4);
 		s[rA] = s[rA] & 0xf0 | v & 0x0f;
-		if(0){
+#if 0
 	case 0x6f:
 			v = z80read(HL());
 			z80write(HL(), v << 4 | s[rA] & 0xf);
 			s[rA] = s[rA] & 0xf0 | v >> 4;
-		}
+#endif
 		s[rF] &= FLAGC;
 		if(s[rA] == 0)
 			s[rF] |= FLAGZ;
