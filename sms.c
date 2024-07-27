@@ -15,7 +15,7 @@ retro_audio_sample_batch_t audio_cb;
 int t = 0;
 uint32_t r[16];
 extern uint16_t pc, curpc, sp;
-uint32_t asp, irq, stop;
+uint32_t irq;
 int doflush = 0;
 uint8_t *rom = NULL;
 uint8_t *mem = NULL;

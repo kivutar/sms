@@ -41,7 +41,7 @@ planes(void)
 	uint16_t screenmap = (reg[PANT] & 0x0e) << 10;
 
 	uint8_t y = vdpy + reg[VERSCR];
-	if (y >= 224) y -= 224;
+	y %= 224;
 	int ty = y >> 3;
 	int tyoff = y & 7;
 
@@ -58,8 +58,7 @@ planes(void)
 	int paloff = (info & 1 << 3) != 0 ? 16 : 0;
 
 	int data = (tidx << 5) + ((vflip ? 7 - tyoff : tyoff) << 2);
-	int xx = 7 - txoff;
-	if (hflip) xx = txoff;
+	int xx = hflip ? txoff : 7 - txoff;
 
 	int c = ((vram[data] >> xx) & 1) +
 			(((vram[data + 1] >> xx) & 1) << 1) +
@@ -187,7 +186,7 @@ vdpdataport(void)
 	vdpbuf = vram[vdpaddr];
 	vdpaddr++;
 	vdpaddr &= 0x3fff;
-	// printf("	vdp read from data port %x\n", v);
+	// printf("    vdp read from data port %x\n", v);
 	first = 1;
 	return v;
 }
@@ -198,7 +197,7 @@ vdpstatus(void)
 	uint8_t v = vdpstat | 0x1f;
 	vdpstat = 0;
 	z80irq = 0;
-	// printf("	vdp read status flags %x\n", v);
+	// printf("    vdp read status flags %x\n", v);
 	first = 1;
 	return v;
 }
@@ -206,14 +205,14 @@ vdpstatus(void)
 uint8_t
 vdphcounter(void)
 {
-	// printf("	vdp read hcounter %x\n", vdpx);
+	// printf("    vdp read hcounter %x\n", vdpx);
 	return vdpx;
 }
 
 uint8_t
 vdpvcounter(void)
 {
-	// printf("	vdp read vcounter %x\n", vdpy);
+	// printf("    vdp read vcounter %x\n", vdpy);
 	return vdpy;
 }
 
