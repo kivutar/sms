@@ -154,7 +154,7 @@ flush(void)
 	doflush = 1;
 }
 
-static uint16_t samples[736 * 2 * 2] = {0};
+static int16_t samples[736 * 2 * 2] = {0};
 
 void
 audioout(void)
