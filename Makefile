@@ -1,7 +1,8 @@
 
 TARGET := sms_libretro.so
 SHARED := -shared
-CFLAGS += -g -O3 -fPIC
+CFLAGS += -g -O3 -fPIC -flto
+LDFLAGS += -flto
 
 OBJ = sms.o z80.o mem.o vdp.o
 
@@ -11,7 +12,7 @@ OBJ = sms.o z80.o mem.o vdp.o
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 $(TARGET): $(OBJ)
-	$(LD) $(SHARED) -o $@ $^ $(LDFLAGS)
+	$(CC) $(SHARED) -o $@ $^ $(LDFLAGS)
 
 clean:
 	rm -f $(OBJ) $(TARGET)
