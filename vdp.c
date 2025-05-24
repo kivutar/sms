@@ -8,11 +8,12 @@ extern uint8_t *pic;
 uint8_t vdpcode, vdpstat = 0;
 uint16_t vdpaddr;
 uint8_t vdpbuf;
-int vdpx = 0, vdpy, vdpyy, frame, intla;
+int vdpx = 0, vdpyy, frame, intla;
 int first = 1;
 uint16_t hctr;
 static int xmax, xdisp;
 enum { ymax = 262, yvbl = 234 };
+int vdpy = ymax-1;
 
 void
 vdpmode(void)
@@ -50,12 +51,15 @@ planes(void)
 	int txoff = x & 7;
 
 	uint16_t taddr = screenmap + (((ty << 5) + tx) << 1);
-	int tidx = vram[taddr];
-	int info = vram[taddr + 1];
+	uint16_t tidx = vram[taddr];
+	uint8_t info = vram[taddr + 1];
 
-	int hflip = (info & 1 << 1) != 0;
-	int vflip = (info & 1 << 2) != 0;
-	int paloff = (info & 1 << 3) != 0 ? 16 : 0;
+	if ((info & 1) != 0)
+		tidx = (tidx | 0x100) & 0x1ff;
+
+	uint8_t hflip = (info & 1 << 1) != 0;
+	uint8_t vflip = (info & 1 << 2) != 0;
+	uint8_t paloff = (info & 1 << 3) != 0 ? 16 : 0;
 
 	int data = (tidx << 5) + ((vflip ? 7 - tyoff : tyoff) << 2);
 	int xx = hflip ? txoff : 7 - txoff;
@@ -212,7 +216,9 @@ vdphcounter(void)
 uint8_t
 vdpvcounter(void)
 {
-	// printf("    vdp read vcounter %x\n", vdpy);
+	// printf("    vdp read hcounter %y\n", vdpy);
+	if (vdpy > 0xda)
+		return vdpy - 0x06;
 	return vdpy;
 }
 
