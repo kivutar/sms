@@ -91,7 +91,7 @@ spritesinit(void)
 			break;
 
 		int y = vram[spridx] + 1;
-		int h = (reg[1] & 1 << 1) != 0 ? 16 : 8;
+		int h = (reg[MODE2] & 1 << 1) != 0 ? 16 : 8;
 
 		if(vdpy >= y && vdpy < y+h && y > 1){
 			if(bufidx >= 8){
@@ -111,7 +111,7 @@ sprites(void)
 {
 	uint16_t t1 = (reg[SPRTAB] << 7 & 0x3f00);
 	uint16_t t2 = t1 + 0x80;
-	uint16_t t3 = (reg[6] << 11) & 0x2000;
+	uint16_t t3 = (reg[SPRADDR] << 11) & 0x2000;
 
 	for(int i = 7; i >= 0; i--){
 		if(sprlst[i] < 0) continue;
@@ -121,10 +121,10 @@ sprites(void)
 		int y = vram[spridx] + 1;
 		uint16_t info = t2 + (spr << 1);
 		int x = vram[info];
-		int h = (reg[1] & 1 << 1) != 0 ? 16 : 8;
+		int h = (reg[MODE2] & 1 << 1) != 0 ? 16 : 8;
 
 		int t = vram[info + 1];
-		t &= (reg[1] & 1 << 1) != 0 ? 0xfe : 0xff;
+		t &= (reg[MODE2] & 1 << 1) != 0 ? 0xfe : 0xff;
 		int taddr = t3 + (t << 5) +  ((vdpy - y) << 2);
 
 		for(int xx = 0; xx < 8; xx++){

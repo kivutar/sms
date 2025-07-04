@@ -27,6 +27,7 @@ enum {
 	PWNT    = 0x03,
 	PBNT    = 0x04,
 	SPRTAB  = 0x05,
+	SPRADDR = 0x06,
 	BGCOL   = 0x07,
 	HORSCR  = 0x08,
 	VERSCR  = 0x09,
