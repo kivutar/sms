@@ -244,8 +244,7 @@ vdpstep(void)
 		if(++vdpy >= ymax){
 			vdpy = 0;
 			irq &= ~INTVBL;
-			vdpstat ^= STATFR;
-			vdpstat &= ~(STATINT | STATVBL | STATOVR | STATCOLL);
+			vdpstat &= ~(STATINT | STATOVR | STATCOLL);
 			flush();
 		}
 		if(intla)
@@ -259,7 +258,7 @@ vdpstep(void)
 				hctr = reg[HORCTR];
 			}
 		if(vdpy == yvbl){
-			vdpstat |= STATVBL | STATINT;
+			vdpstat |= STATINT;
 			frame ^= 1;
 			z80irq = 1;
 			if((reg[MODE2] & IE0) != 0)

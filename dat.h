@@ -35,8 +35,6 @@ enum {
 	IE0     = 0x20,
 	IE1     = 0x10,
 
-	STATVBL = 0x08,
-	STATFR  = 0x10,
 	STATCOLL= 0x20,
 	STATOVR = 0x40,
 	STATINT = 0x80,
