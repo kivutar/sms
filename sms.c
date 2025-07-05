@@ -1,4 +1,5 @@
 #include <fcntl.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,7 +11,7 @@ static retro_input_state_t input_state_cb;
 static retro_input_poll_t input_poll_cb;
 static retro_video_refresh_t video_cb;
 static retro_environment_t environ_cb;
-retro_audio_sample_batch_t audio_cb;
+retro_audio_sample_t audio_cb;
 
 int t = 0;
 uint32_t r[16];
@@ -21,6 +22,7 @@ uint8_t *rom = NULL;
 uint8_t *mem = NULL;
 uint8_t *pic = NULL;
 int vdpclock = 0;
+int psgclock = 0;
 uint8_t keys[2];
 
 void
@@ -53,7 +55,7 @@ void
 retro_get_system_av_info(struct retro_system_av_info *info)
 {
 	info->timing.fps = 60.0;
-	info->timing.sample_rate = 48000;
+	info->timing.sample_rate = RATE;
 
 	info->geometry.base_width = 320;
 	info->geometry.base_height = 224;
@@ -77,6 +79,7 @@ retro_load_game(const struct retro_game_info *game)
 		return false;
 
 	loadrom(game->data);
+	psginit(RATE, PSGCLOCK);
 	vdpmode();
 	return true;
 }
@@ -108,6 +111,7 @@ process_inputs()
 
 int counter = 0;
 int total = 0;
+int samplescounter = 0;
 
 void
 retro_run(void)
@@ -143,7 +147,15 @@ retro_run(void)
 
 	video_cb(pic, 256, 192, 320*4);
 
-	audioout();
+	for(int i = 0; i < 736; i++){
+		int16_t frame = psgstep();
+		audio_cb(frame, frame);
+		samplescounter++;
+	}
+
+	//printf("Samples: %d\n", samplescounter);
+	samplescounter = 0;
+
 	doflush = 0;
 	total = 0;
 }
@@ -152,14 +164,6 @@ void
 flush(void)
 {
 	doflush = 1;
-}
-
-static int16_t samples[736 * 2 * 2] = {0};
-
-void
-audioout(void)
-{
-	audio_cb(samples, 736);
 }
 
 void
@@ -187,7 +191,7 @@ retro_set_environment(retro_environment_t cb)
 }
 
 void
-retro_set_audio_sample_batch(retro_audio_sample_batch_t cb)
+retro_set_audio_sample(retro_audio_sample_t cb)
 {
 	audio_cb = cb;
 }
@@ -221,7 +225,7 @@ size_t retro_get_memory_size(unsigned id) { return 0; }
 void * retro_get_memory_data(unsigned id) { return NULL; }
 void retro_unload_game(void) {}
 void retro_deinit(void) {}
-void retro_set_audio_sample(retro_audio_sample_t cb) {}
+void retro_set_audio_sample_batch(retro_audio_sample_batch_t cb) {}
 void retro_cheat_reset(void) {}
 void retro_cheat_set(unsigned index, bool enabled, const char *code) {}
 bool retro_load_game_special(unsigned game_type, const struct retro_game_info *info, size_t num_info) { return false; }

@@ -52,12 +52,11 @@ enum {
 
 enum {
 	FREQ = 53203400,
-	YMDIV = 7 * 6,
-	CPUDIV = 7,
 	Z80DIV = 15,
 	RATE = 44100,
-	SAMPDIV = FREQ / RATE,
 	SAVEFREQ = FREQ / 4,
+	PSGCLOCK = 3579545,
+	PSGDIV = 16,
 };
 
 enum {

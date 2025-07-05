@@ -4,7 +4,7 @@ SHARED := -shared
 CFLAGS += -g -O3 -fPIC -flto
 LDFLAGS += -flto
 
-OBJ = sms.o z80.o mem.o vdp.o
+OBJ = sms.o z80.o mem.o vdp.o psg.o
 
 .DEFAULT_GOAL := $(TARGET)
 

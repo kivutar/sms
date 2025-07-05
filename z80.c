@@ -676,7 +676,7 @@ z80step(void)
 		return 1;
 	}
 	if(z80irq != 0 && (intm & 0x80) != 0){
-		printf("irq\n");
+		//printf("irq\n");
 		push16(pc);
 		intm &= 0x3f;
 		switch(intm & 3){
